@@ -601,13 +601,15 @@ class UltraStealthScraper:
                             page.evaluate("window.scrollBy(0, 500)")
                             time.sleep(2)
                             logger.info("[UltraStealth] MSN content detected")
-                        except: pass
+                        except Exception:
+                            logger.debug("[UltraStealth] MSN specific selectors not found, continuing...")
                         
                     elif "goodreturns.in" in url:
                         try:
                             page.wait_for_selector('.content-area, .story-section', timeout=15000)
                             logger.info("[UltraStealth] GoodReturns content detected")
-                        except: pass
+                        except Exception:
+                            logger.debug("[UltraStealth] GoodReturns specific selectors not found, continuing...")
 
                     # Wait for content stabilization
                     time.sleep(random.uniform(2.0, 4.0))
