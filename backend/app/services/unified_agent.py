@@ -173,6 +173,92 @@ Reply with ONLY the category name."""
         # Default to research
         return "research", 0.6
     
+    async def _scrape_multiple_urls(self, scraper, params: Dict, user_input: str) -> Dict:
+        """Scrape multiple URLs and optionally compare them."""
+        urls = params.get("urls", [])
+        logger.info(f"[Agent] Scraping {len(urls)} URLs")
+        
+        # Scrape all URLs concurrently (but with a limit to avoid overwhelming)
+        from asyncio import Semaphore
+        semaphore = Semaphore(3)  # Max 3 concurrent scrapes
+        
+        async def scrape_with_limit(url):
+            async with semaphore:
+                try:
+                    content = await asyncio.wait_for(scraper.scrape(url), timeout=180.0)
+                    return {"url": url, "content": content, "success": True}
+                except Exception as e:
+                    return {"url": url, "error": str(e), "success": False}
+        
+        results = await asyncio.gather(*[scrape_with_limit(url) for url in urls])
+        
+        # Filter successful results
+        successful = [r for r in results if r.get("success")]
+        failed = [r for r in results if not r.get("success")]
+        
+        if not successful:
+            return {
+                "type": "multi_scrape_result",
+                "success": False,
+                "error": "Failed to scrape any of the provided URLs",
+                "failed_urls": [r["url"] for r in failed]
+            }
+        
+        # If comparison requested, use LLM to compare
+        if params.get("is_comparison") and len(successful) >= 2:
+            comparison_prompt = f"""Compare these webpages based on the user's request.
+
+User request: {user_input}
+
+"""
+            for i, result in enumerate(successful[:5], 1):  # Limit to 5 for token limits
+                content_preview = result["content"][:5000]  # 5k chars per page
+                comparison_prompt += f"\n--- Page {i}: {result['url']} ---\n{content_preview}\n"
+            
+            comparison_prompt += "\n\nProvide a detailed comparison addressing what the user asked. Use markdown formatting with clear sections."
+            
+            comparison = await self.llm.process(comparison_prompt)
+            
+            return {
+                "type": "comparison_result",
+                "urls": [r["url"] for r in successful],
+                "comparison_analysis": comparison,
+                "scraped_count": len(successful),
+                "failed_count": len(failed),
+                "success": True
+            }
+        
+        # Otherwise, analyze all content together
+        combined_prompt = f"""Analyze these webpages and provide insights based on the user's request.
+
+User request: {user_input}
+
+"""
+        for i, result in enumerate(successful[:5], 1):
+            content_preview = result["content"][:5000]
+            combined_prompt += f"\n--- Page {i}: {result['url']} ---\n{content_preview}\n"
+        
+        combined_prompt += "\n\nProvide a comprehensive analysis. Use markdown formatting."
+        
+        analysis = await self.llm.process(combined_prompt)
+        
+        return {
+            "type": "multi_scrape_result",
+            "urls": [r["url"] for r in successful],
+            "combined_analysis": analysis,
+            "individual_results": [
+                {
+                    "url": r["url"],
+                    "content_preview": r["content"][:1000],
+                    "content_length": len(r["content"])
+                } for r in successful
+            ],
+            "scraped_count": len(successful),
+            "failed_count": len(failed),
+            "failed_urls": [r["url"] for r in failed] if failed else [],
+            "success": True
+        }
+    
     async def _extract_params(self, user_input: str, intent: str) -> Dict:
         """Extract relevant parameters from user input."""
         params = {"raw_input": user_input}
@@ -182,6 +268,21 @@ Reply with ONLY the category name."""
         if urls:
             params["urls"] = urls
             params["url"] = urls[0]
+            params["url_count"] = len(urls)
+        
+        # Detect comparison intent
+        comparison_keywords = ["compare", "versus", "vs", "difference", "better", "which"]
+        if any(kw in user_input.lower() for kw in comparison_keywords):
+            params["is_comparison"] = True
+        
+        # Extract numbers for batch operations
+        numbers = re.findall(r'\b(\d+)\s*(?:companies|products|items|pages|urls)\b', user_input.lower())
+        if numbers:
+            params["batch_count"] = int(numbers[0])
+        
+        # Detect insights/analysis request
+        if any(w in user_input.lower() for w in ["insight", "analyze", "analysis", "understand", "explain"]):
+            params["needs_analysis"] = True
         
         # Extract quoted strings
         quoted = re.findall(r'"([^"]+)"', user_input)
@@ -220,7 +321,11 @@ Reply with ONLY the category name."""
                 from app.agents.hybrid_scraper import HybridScraper
                 scraper = HybridScraper()
                 
-                # HybridScraper.scrape() returns a string directly, not a dict
+                # Handle multiple URLs
+                if params.get("url_count", 1) > 1:
+                    return await self._scrape_multiple_urls(scraper, params, user_input)
+                
+                # Single URL scraping
                 try:
                     content = await asyncio.wait_for(
                         scraper.scrape(params["url"]),
@@ -245,8 +350,18 @@ Reply with ONLY the category name."""
                 if content and len(content) > 100:
                     content_preview = content[:10000]
                     
-                    # Extract specific data if requested
-                    extraction_prompt = f"""From this webpage content, extract what the user requested.
+                    # If insights requested or comparison, use LLM to analyze
+                    if params.get("needs_analysis") or params.get("is_comparison"):
+                        extraction_prompt = f"""Analyze this webpage content and provide insights.
+
+User request: {user_input}
+
+Content:
+{content_preview}
+
+Provide a comprehensive analysis addressing what the user asked for. Use markdown formatting."""
+                    else:
+                        extraction_prompt = f"""From this webpage content, extract what the user requested.
 
 User request: {user_input}
 
@@ -261,7 +376,7 @@ Extract and format the requested information clearly. Use markdown formatting.""
                         "type": "scrape_result",
                         "url": params["url"],
                         "extracted_data": extracted,
-                        "content": content_preview,  # Also include raw content
+                        "content": content_preview,
                         "content_length": len(content),
                         "success": True
                     }
