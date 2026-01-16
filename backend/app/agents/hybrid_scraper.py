@@ -37,13 +37,13 @@ class HybridScraper:
     HEAVY_SITES = [
         'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com',
         'amazon.com', 'ebay.com', 'google.com', 'cloudflare.com',
-        'zillow.com', 'indeed.com', 'glassdoor.com'
+        'zillow.com', 'indeed.com', 'glassdoor.com', 'github.com'
     ]
 
     # Sites that need ultra stealth
     ULTRA_STEALTH_SITES = [
         'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com',
-        'cloudflare.com', 'datadome.com', 'akamai.com', 'perimeterx.com'
+        'cloudflare.com', 'datadome.com', 'akamai.com', 'perimeterx.com', 'github.com'
     ]
     
     # Strategy name mapping
