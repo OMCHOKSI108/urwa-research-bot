@@ -221,10 +221,25 @@ Reply with ONLY the category name."""
                 scraper = HybridScraper()
                 
                 # HybridScraper.scrape() returns a string directly, not a dict
-                content = await asyncio.wait_for(
-                    scraper.scrape(params["url"]),
-                    timeout=60.0
-                )
+                try:
+                    content = await asyncio.wait_for(
+                        scraper.scrape(params["url"]),
+                        timeout=180.0  # 3 minutes for ultra-stealth scraping
+                    )
+                except asyncio.TimeoutError:
+                    return {
+                        "type": "scrape_result",
+                        "url": params["url"],
+                        "success": False,
+                        "error": "Scraping timeout - site took too long to respond (>3min)"
+                    }
+                except Exception as e:
+                    return {
+                        "type": "scrape_result",
+                        "url": params["url"],
+                        "success": False,
+                        "error": f"Scraping failed: {str(e)}"
+                    }
                 
                 # Check if we got content
                 if content and len(content) > 100:
