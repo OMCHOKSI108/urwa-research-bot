@@ -17,11 +17,18 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     import os
     load_dotenv()
+    
+    # Get host and port from environment or use defaults
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    
     print(f"🚀 Starting URWA Server (Windows Proactor Fix Applied)...")
     print(f"🔑 Groq Key Present: {bool(os.getenv('GROQ_API_KEY'))}")
+    print(f"🌐 Server will run on {host}:{port}")
+    
     uvicorn.run(
         "app.main:app", 
-        host="127.0.0.1", 
-        port=8000, 
+        host=host, 
+        port=port, 
         reload=False
     )
