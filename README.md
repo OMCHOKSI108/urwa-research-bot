@@ -1,26 +1,44 @@
+
 <div align="center">
 
 # ╔══════════════════════════════════════════════════════════════╗
-# ║                       URWA BRAIN v3.5                        ║
+
+# ║                       **URWA BRAIN v3.5**                    ║
+
 # ╚══════════════════════════════════════════════════════════════╝
 
-### [ AI-Powered Autonomous Research & Scraping Engine ]
+### 🚀 AI-Powered Autonomous Research & Stealth Scraping Engine
 
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-Local_AI-000000?style=for-the-badge&logo=ollama&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+**From simple queries to multi-stage intelligence pipelines — fully automated.**
 
-<br>
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge\&logo=python\&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge\&logo=playwright\&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local_AI-000000?style=for-the-badge\&logo=ollama\&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 
 </div>
 
 ---
 
-## ┏ Quick Start ┓
+## 🧠 What is URWA Brain?
 
-The fastest way to launch the **URWA Terminal Interface**:
+**URWA Brain** is an **agent-driven research and scraping platform** that understands intent, adapts its strategy, and delivers **structured intelligence** — not just raw HTML.
+
+It automatically decides:
+
+* *Should I research or scrape?*
+* *Is this site protected?*
+* *Do I need stealth browsing?*
+* *Should I use local AI or cloud LLMs?*
+
+And then executes the **entire pipeline autonomously**.
+
+---
+
+## ⚡ Quick Start
+
+Launch the **URWA Terminal Interface** in one command.
 
 ```bash
 # Windows
@@ -28,84 +46,122 @@ urwa sans start
 ```
 
 ```bash
-# Linux / Mac / Git Bash
+# Linux / macOS / Git Bash
 ./urwa sans start
 ```
 
-*> This will automatically set up the environment, check dependencies, and launch the AI Agent.*
+> This bootstraps the environment, verifies dependencies, and launches the AI Agent.
 
 ---
 
-## ┏ Key Features ┓
+## ✨ Core Capabilities
 
-| Feature | Status | Description |
-|:---|:---:|:---|
-| **Autonomous Agent** | [ACTIVE] | Understands natural language intent (Research vs Scrape vs Analyze) |
-| **Ultra Stealth Scraper** | [ACTIVE] | Bypasses Cloudflare, 403s, and CAPTCHAs using browser fingerprinting |
-| **Deep Research** | [ACTIVE] | Multi-step web searching, synthesizing, and citing sources |
-| **Site Analysis** | [ACTIVE] | Profiles target websites for protection levels before attacking |
-| **Private AI** | [ACTIVE] | Full local LLM support via **Ollama** (Phi-3, Llama-3) |
-| **API First** | [ACTIVE] | Full REST API with Swagger documentation |
+| Capability                 |  Status  | What it actually does                                     |
+| -------------------------- | :------: | --------------------------------------------------------- |
+| **Intent-Aware Agent**     | ✅ ACTIVE | Understands *research vs scrape vs analyze* automatically |
+| **Ultra-Stealth Scraping** | ✅ ACTIVE | Defeats 403s, bot protection, Cloudflare, JS challenges   |
+| **Deep Research Mode**     | ✅ ACTIVE | Multi-query web search → synthesis → citations            |
+| **Site Intelligence**      | ✅ ACTIVE | Profiles protection level before execution                |
+| **Private AI Mode**        | ✅ ACTIVE | Fully local LLM via **Ollama** (Phi-3, Llama-3)           |
+| **Hybrid LLM Routing**     | ✅ ACTIVE | Switch between Ollama / Groq / OpenAI                     |
+| **API-First Design**       | ✅ ACTIVE | REST API + Swagger UI                                     |
 
 ---
 
-## ┏ Architecture ┓
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
-    User[User Input] --> Router{Intent Router}
-    Router -->|Question| Research[Research Engine]
-    Router -->|URL| Scraper[Stealth Scraper]
-    Router -->|Analysis| Profiler[Site Profiler]
+    U[User / CLI / API] --> IR{Intent Router}
     
-    Research --> Search[DuckDuckGo (DDGS)]
-    Scraper --> Browser[Playwright/Stealth]
+    IR -->|Research| RE[Research Engine]
+    IR -->|Scrape| SS[Stealth Scraper]
+    IR -->|Analyze| SP[Site Profiler]
     
-    Search --> LLM[LLM Analysis]
-    Browser --> LLM
+    RE --> SE[Search Engines]
+    SS --> BW[Playwright Stealth Browser]
     
-    LLM --> JSON[Structured Output]
+    SE --> LLM[LLM Reasoning Layer]
+    BW --> LLM
+    
+    LLM --> OUT[Structured JSON Output]
 ```
 
 ---
 
-## ┏ Installation & Setup ┓
+## 📦 Installation & Setup
 
-### Option 1: The "Pro" Way (CLI)
-Just run the command above. It handles everything.
+### Option A — One-Command CLI (Recommended)
 
-### Option 2: Manual Setup
+Just run:
 
-**1. Clone & Prep**
+```bash
+urwa sans start
+```
+
+Everything is handled automatically.
+
+---
+
+### Option B — Manual Setup
+
+#### 1. Clone & Environment
+
 ```bash
 git clone https://github.com/yourusername/urwa-brain.git
 cd urwa-brain
 python -m venv venv
-# Windows: venv\Scripts\activate
-# Linux: source venv/bin/activate
 ```
 
-**2. Install Core**
+Activate:
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+```
+
+---
+
+#### 2. Install Dependencies
+
 ```bash
 cd backend
 pip install -r requirements.txt
 playwright install chromium
 ```
 
-**3. Configure AI**
-*   **Local (Private):** Install [Ollama](https://ollama.ai) and run `ollama pull phi3:mini`.
-*   **Cloud (Fast):** Set `GROQ_API_KEY` in your environment.
+---
+
+#### 3. Configure AI Providers
+
+**Local (Private AI)**
+
+```bash
+ollama pull phi3:mini
+```
+
+**Cloud (High-Speed)**
+Set in your environment:
+
+```bash
+GROQ_API_KEY=your_key_here
+```
 
 ---
 
-## ┏ API Usage ┓
+## 🔌 API Usage
 
-The backend runs on port `8000`.
+Backend runs on **`http://localhost:8000`**
 
-### **Agent Endpoint (The Brain)**
+### 🧠 Unified Agent Endpoint
+
 `POST /api/v1/agent`
 
-**Request:**
+#### Request
+
 ```json
 {
   "input": "Find the pricing of iPhone 15 Pro Max on amazon.com and compare with apple.com",
@@ -113,7 +169,8 @@ The backend runs on port `8000`.
 }
 ```
 
-**Response:**
+#### Response
+
 ```json
 {
   "intent": "scrape",
@@ -130,29 +187,67 @@ The backend runs on port `8000`.
 
 ---
 
-## ┏ Project Structure ┓
+## 🗂️ Project Structure
 
 ```text
 urwa-brain/
-├── backend/               # Core API Logic
+├── backend/
 │   ├── app/
-│   │   ├── main.py        # FastAPI Application
-│   │   ├── agents/        # Scraper & Research Agents
-│   │   └── services/      # Orchestrator Logic
-│   └── requirements.txt   # Python Dependencies
-├── terminal/              # CLI Interface
-│   └── cli.py             # Rich Terminal UI
-├── urwa.cmd               # Windows Launcher
-├── urwa                   # Linux/Unix Launcher
-└── README.md              # Documentation
+│   │   ├── main.py              # FastAPI entrypoint
+│   │   ├── agents/             # Autonomous agents
+│   │   ├── services/           # Orchestration layer
+│   │   ├── strategies/         # Stealth + bypass logic
+│   │   └── utils/              # Parsers, rankers, analyzers
+│   └── requirements.txt
+│
+├── terminal/
+│   └── cli.py                  # Rich CLI interface
+│
+├── docs/                       # Architecture & API docs
+├── docker-compose.yml
+├── urwa.cmd                    # Windows launcher
+├── urwa                        # Linux/macOS launcher
+└── README.md
 ```
+
+---
+
+## 🧩 Use-Cases
+
+* 🔎 **Market Intelligence** – competitor pricing, feature comparison
+* 📰 **OSINT & Research** – multi-source verification
+* 🧪 **Data Extraction** – from JS-heavy protected sites
+* 🤖 **AI Pipelines** – plug into agents, workflows, MCP servers
+* 🏫 **Academic Projects** – real-world autonomous systems
+
+---
+
+## 🛡️ Compliance & Ethics
+
+URWA Brain is built with:
+
+* Respect for **robots.txt** (configurable)
+* Rate limiting & adaptive crawling
+* No built-in misuse tooling
+  You control *where* and *how* it is used.
+
+---
+
+## 🛣️ Roadmap
+
+* [ ] MCP Server integration
+* [ ] n8n workflow triggers
+* [ ] Visual agent dashboard
+* [ ] Distributed crawling nodes
+* [ ] Persistent knowledge graph
 
 ---
 
 <div align="center">
 
-**Built for Speed, Stealth, and Intelligence.**
-<br>
-[Report Bug] • [Request Feature]
+### **Built for Speed. Engineered for Stealth. Designed for Intelligence.**
+
+[🐞 Report Bug](#) • [✨ Request Feature](#) • [📖 Docs](#)
 
 </div>
+
