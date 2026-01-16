@@ -1,0 +1,32 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: f92491eb-fb68-448b-95d4-6c5c890ada01
+Search Time: 2026-01-16 17:06:24
+Completed: 2026-01-16 17:13:24
+Duration: 419.66 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Why Trump imposed 50 % tariff on india and also please explain what this impact to india and its people ?
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://mishtalk.com/economics/trump-punishes-india-with-50-percent-tariffs-for-buying-russian-oil/
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Donald Trump imposed a 50% tariff on Indian steel and aluminum imports as part of his 'America First' policy, which led to trade tensions between the United States and India.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+In March 2018, President Donald Trump announced that he would impose steep import duties on certain products from countries with cheap labor markets. This included a tariff of up to 50% on steel imports from India among others. The move was aimed at protecting American jobs and industries but led to retaliatory measures by other nations, including India which imposed its own set of duties in response.
+
