@@ -26,6 +26,9 @@ try:
 except ImportError:
     from duckduckgo_search import DDGS
 import googlesearch
+import requests
+from bs4 import BeautifulSoup
+import re
 
 # Define directories
 from pathlib import Path
@@ -52,47 +55,241 @@ class OrchestratorService:
         os.makedirs(HISTORY_DIR, exist_ok=True)
 
     async def perform_search_multi_engine(self, query: str, max_results=5) -> list[str]:
+        """
+        Multi-engine web search with automatic fallback.
+        Tries 5 search engines in order: DuckDuckGo -> Bing -> Brave -> Google -> Yahoo
+        """
         results = []
+        # Reduced blacklist - only block truly problematic sites
         blacklist = [
-            "support.google.com", "accounts.google.com", "youtube.com", 
-            "facebook.com", "twitter.com", "linkedin.com", "instagram.com"
+            "support.google.com", "accounts.google.com"
         ]
         
-        # 1. Try Google Search (Official, No API)
+        # 1. Try DuckDuckGo First (Most reliable, no rate limits)
         try:
-            logger.info("Searching via Google...")
-            # Use run_in_executor because googlesearch is blocking
-            google_results = await asyncio.to_thread(
-                lambda: list(googlesearch.search(query, num_results=max_results, advanced=True))
-            )
+            logger.info(f"[Search] DuckDuckGo: '{query}'...")
+            with DDGS() as ddgs:
+                ddg_results = await asyncio.to_thread(
+                    lambda: [r['href'] for r in ddgs.text(query, max_results=max_results*3)]
+                )
+                
+                for url in ddg_results:
+                    if not any(b in url for b in blacklist):
+                        results.append(url)
             
-            for res in google_results:
-                url = res.url
-                if not any(b in url for b in blacklist):
-                    results.append(url)
-            
-            logger.info(f"Google returned {len(results)} results")
+            logger.info(f"[Search] DuckDuckGo returned {len(results)} results")
             
         except Exception as e:
-            logger.warning(f"Google Search Failed (falling back): {e}")
+            logger.warning(f"[Search] DuckDuckGo failed: {e}")
 
-        # 2. Fallback/Augment with DuckDuckGo
-        if len(results) < 2:
+        # 2. Try Bing if we need more results
+        if len(results) < 3:
             try:
-                logger.info("Searching via DuckDuckGo (Fallback/Augmentation)...")
-                with DDGS() as ddgs:
-                    ddg_results = await asyncio.to_thread(lambda: [r['href'] for r in ddgs.text(query, max_results=max_results*2)])
-                    
-                    for url in ddg_results:
-                        if url not in results and not any(b in url for b in blacklist):
-                            results.append(url)
+                logger.info("[Search] Trying Bing...")
+                bing_results = await self._search_bing(query, max_results=max_results*2)
+                for url in bing_results:
+                    if url not in results and not any(b in url for b in blacklist):
+                        results.append(url)
+                logger.info(f"[Search] Bing added results, total: {len(results)}")
             except Exception as e:
-                logger.error(f"DuckDuckGo Search Failed: {e}")
+                logger.warning(f"[Search] Bing failed: {e}")
+
+        # 3. Try Brave Search if we still need more
+        if len(results) < 3:
+            try:
+                logger.info("[Search] Trying Brave Search...")
+                brave_results = await self._search_brave(query, max_results=max_results*2)
+                for url in brave_results:
+                    if url not in results and not any(b in url for b in blacklist):
+                        results.append(url)
+                logger.info(f"[Search] Brave added results, total: {len(results)}")
+            except Exception as e:
+                logger.warning(f"[Search] Brave failed: {e}")
+
+        # 4. Try Google as additional source
+        if len(results) < 3:
+            try:
+                logger.info("[Search] Trying Google...")
+                google_results = await asyncio.to_thread(
+                    lambda: list(googlesearch.search(query, num_results=max_results*2, advanced=True))
+                )
+                
+                for res in google_results:
+                    url = res.url
+                    if url not in results and not any(b in url for b in blacklist):
+                        results.append(url)
+                
+                logger.info(f"[Search] Google added results, total: {len(results)}")
+                
+            except Exception as e:
+                logger.warning(f"[Search] Google failed: {e}")
+
+        # 5. Try Yahoo as final fallback
+        if len(results) < 3:
+            try:
+                logger.info("[Search] Trying Yahoo (final fallback)...")
+                yahoo_results = await self._search_yahoo(query, max_results=max_results*2)
+                for url in yahoo_results:
+                    if url not in results and not any(b in url for b in blacklist):
+                        results.append(url)
+                logger.info(f"[Search] Yahoo added results, total: {len(results)}")
+            except Exception as e:
+                logger.warning(f"[Search] Yahoo failed: {e}")
             
         if not results:
-            logger.warning("All search engines returned no results.")
+            logger.error(f"[Search] ALL 5 search engines failed for query: '{query}'")
+        else:
+            logger.success(f"[Search] Found {len(results)} valid URLs from multiple engines")
             
         return list(set(results))[:max_results]
+
+    async def _search_bing(self, query: str, max_results=10) -> list[str]:
+        """Search Bing using ultra-stealth scraping (Bing blocks lightweight)"""
+        try:
+            url = f"https://www.bing.com/search?q={requests.utils.quote(query)}&count={max_results}"
+            
+            # Bing blocks lightweight scrapers, use ultra-stealth directly
+            from app.agents.ultra_stealth_scraper import UltraStealthScraper
+            ultra_scraper = UltraStealthScraper()
+            raw_html = await ultra_scraper.scrape(url)
+            
+            if raw_html and len(raw_html) > 500:
+                soup = BeautifulSoup(raw_html, 'html.parser')
+                results = []
+                
+                # Pattern 1: Main organic results (most common)
+                for li in soup.find_all('li', class_=re.compile('b_algo')):
+                    link = li.find('a', href=True)
+                    if link and link['href'].startswith('http'):
+                        if 'bing.com' not in link['href'] and 'microsoft.com' not in link['href']:
+                            results.append(link['href'])
+                
+                # Pattern 2: <cite> tags
+                for cite in soup.find_all('cite'):
+                    href = cite.text.strip()
+                    if href.startswith('http'):
+                        results.append(href.split('›')[0].strip())
+                
+                # Pattern 3: <a> tags with h2 parent
+                for h2 in soup.find_all('h2'):
+                    link = h2.find('a', href=True)
+                    if link and link['href'].startswith('http'):
+                        if 'bing.com' not in link['href'] and 'microsoft.com' not in link['href']:
+                            results.append(link['href'])
+                
+                # Pattern 4: Any link starting with http not from Bing
+                if len(results) < 2:
+                    for link in soup.find_all('a', href=True):
+                        href = link['href']
+                        if href.startswith('http') and 'bing.com' not in href and 'microsoft.com' not in href:
+                            results.append(href)
+                
+                logger.info(f"[Search] Bing extracted {len(results)} results before dedup")
+                return list(set(results))[:max_results]
+            return []
+        except Exception as e:
+            logger.debug(f"Bing search error: {e}")
+            return []
+
+    async def _search_brave(self, query: str, max_results=10) -> list[str]:
+        """Scrape Brave search results"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'identity',  # Disable compression to avoid brotli issues
+                'DNT': '1'
+            }
+            url = f"https://search.brave.com/search?q={requests.utils.quote(query)}"
+            
+            response = await asyncio.to_thread(
+                lambda: requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+            )
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                results = []
+                
+                # Multiple patterns for Brave results
+                # Pattern 1: Links with specific classes
+                for link in soup.find_all('a', href=True):
+                    href = link['href']
+                    if href.startswith('http') and 'brave.com' not in href:
+                        # Check if it's in a result container
+                        parent_classes = ' '.join(link.parent.get('class', []))
+                        if 'result' in parent_classes.lower() or 'snippet' in parent_classes.lower():
+                            results.append(href)
+                
+                # Pattern 2: data-url attributes
+                for div in soup.find_all('div', attrs={'data-url': True}):
+                    results.append(div['data-url'])
+                
+                # Pattern 3: cite tags
+                for cite in soup.find_all('cite'):
+                    href = cite.text.strip()
+                    if href.startswith('http'):
+                        results.append(href)
+                
+                return list(set(results))[:max_results]
+            return []
+        except Exception as e:
+            logger.debug(f"Brave search error: {e}")
+            return []
+
+    async def _search_yahoo(self, query: str, max_results=10) -> list[str]:
+        """Search Yahoo using ultra-stealth scraping (Yahoo blocks lightweight)"""
+        try:
+            url = f"https://search.yahoo.com/search?p={requests.utils.quote(query)}&n={max_results}"
+            
+            # Yahoo blocks lightweight scrapers, use ultra-stealth directly
+            from app.agents.ultra_stealth_scraper import UltraStealthScraper
+            ultra_scraper = UltraStealthScraper()
+            raw_html = await ultra_scraper.scrape(url)
+            
+            if raw_html and len(raw_html) > 500:
+                soup = BeautifulSoup(raw_html, 'html.parser')
+                results = []
+                
+                # Pattern 1: Main organic results with algo classes
+                for div in soup.find_all('div', class_=re.compile('algo|Sr|compTitle')):
+                    link = div.find('a', href=True)
+                    if link:
+                        href = link.get('href', '')
+                        if href.startswith('http') and 'yahoo.com' not in href and 'r.search.yahoo' not in href:
+                            results.append(href)
+                
+                # Pattern 2: Links in specific container classes
+                for link in soup.find_all('a', href=True, class_=re.compile('ac-algo|d-ib|algo-sr')):
+                    href = link.get('href', '')
+                    if href.startswith('http') and 'yahoo.com' not in href and 'r.search.yahoo' not in href:
+                        results.append(href)
+                
+                # Pattern 3: Direct result URLs from span/cite
+                for cite in soup.find_all(['cite', 'span'], class_=re.compile('url|fz-|txt')):
+                    href = cite.text.strip()
+                    if href.startswith('http'):
+                        results.append(href)
+                
+                # Pattern 4: Look for h3/h4 with links
+                for heading in soup.find_all(['h3', 'h4']):
+                    link = heading.find('a', href=True)
+                    if link and link['href'].startswith('http') and 'yahoo.com' not in link['href']:
+                        results.append(link['href'])
+                
+                # Pattern 5: Any link starting with http not from Yahoo
+                if len(results) < 2:
+                    for link in soup.find_all('a', href=True):
+                        href = link['href']
+                        if href.startswith('http') and 'yahoo.com' not in href:
+                            results.append(href)
+                
+                logger.info(f"[Search] Yahoo extracted {len(results)} results before dedup")
+                return list(set(results))[:max_results]
+            return []
+        except Exception as e:
+            logger.debug(f"Yahoo search error: {e}")
+            return []
 
     def _validate_url(self, url: str) -> bool:
         """Prevent SSRF by blocking internal IPs"""
@@ -220,16 +417,19 @@ class OrchestratorService:
             # 1. Discovery Phase
             target_urls = request.urls if request.urls and len(request.urls) > 0 else None
             if not target_urls:
-                logger.info("Auto-Discovery: Searching Web...")
-                target_urls = await self.perform_search_multi_engine(request.query, max_results=3)
+                logger.info("[Discovery] No URLs provided, searching web...")
+                target_urls = await self.perform_search_multi_engine(request.query, max_results=5)
             
             if not target_urls:
                 error_response = {
                      "error": "NoURLsFoundError",
-                     "message": "Discovery failed: No relevant URLs found for this query.",
-                     "status": "failed"
+                     "message": "Web search failed: Could not find any relevant URLs. This may be due to network issues or search engine blocking. Try providing specific URLs.",
+                     "status": "failed",
+                     "query": request.query,
+                     "suggestion": "Try: 1) Check internet connection, 2) Provide specific URLs, 3) Retry in a few minutes"
                 }
                 self._save_session(request_id, error_response)
+                logger.error(f"[Discovery] Failed to find URLs for query: '{request.query}'")
                 return
 
             # 2. Deep Analysis Loop
@@ -565,10 +765,16 @@ class OrchestratorService:
             if not collected_data:
                 error_response = {
                      "error": "AllSourcesBlockedError",
-                     "message": "Failed to access any valid sources.",
-                     "status": "failed"
+                     "message": f"Failed to scrape any of {len(target_urls)} sources. All {len(failed_urls)} URLs failed (timeout/blocked/access denied).",
+                     "status": "failed",
+                     "query": request.query,
+                     "attempted_urls": target_urls[:10],
+                     "failed_count": len(failed_urls),
+                     "suggestion": "Sites may be blocking automated access. Try: 1) Different keywords, 2) Specific URLs from accessible sources, 3) Check logs for details"
                 }
                 self._save_session(request_id, error_response)
+                logger.error(f"[Scraping] All {len(target_urls)} URLs failed for query: '{request.query}'")
+                logger.error(f"[Scraping] Failed URLs: {failed_urls[:5]}")
                 return
 
             # 3. Synthesis
@@ -647,7 +853,8 @@ class OrchestratorService:
                         "schema_confidence": schema_response.schema_confidence,
                         "total_items": schema_response.total_items
                     }
-            except: pass
+            except Exception as e:
+                logger.warning(f"Schema detection failed: {e}")
 
             key_data_models = []
             for kd in all_key_data[:20]:

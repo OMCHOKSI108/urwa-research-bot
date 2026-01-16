@@ -451,7 +451,8 @@ class HealthChecker:
         results = {}
         
         # Check system resources
-        cpu_percent = psutil.cpu_percent()
+        # Use interval=1 to get accurate CPU reading (first call with interval=None returns 0)
+        cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
@@ -461,24 +462,24 @@ class HealthChecker:
         
         if cpu_percent > 90:
             system_status = HealthStatus.DEGRADED
-            system_message = f"High CPU: {cpu_percent}%"
+            system_message = f"High CPU: {cpu_percent:.1f}%"
         
         if memory.percent > 90:
             system_status = HealthStatus.DEGRADED
-            system_message = f"High memory: {memory.percent}%"
+            system_message = f"High memory: {memory.percent:.1f}%"
         
         if disk.percent > 95:
             system_status = HealthStatus.UNHEALTHY
-            system_message = f"Disk almost full: {disk.percent}%"
+            system_message = f"Disk almost full: {disk.percent:.1f}%"
         
         results["system"] = ComponentHealth(
             name="system",
             status=system_status,
             message=system_message,
             metrics={
-                "cpu_percent": cpu_percent,
-                "memory_percent": memory.percent,
-                "disk_percent": disk.percent
+                "cpu_percent": round(cpu_percent, 1),
+                "memory_percent": round(memory.percent, 1),
+                "disk_percent": round(disk.percent, 1)
             }
         )
         
