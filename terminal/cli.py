@@ -187,6 +187,7 @@ def check_services():
     console.print(status_table)
     console.print()
 
+
 async def call_api(endpoint: str, method: str = "POST", params: Dict = None, json_data: Dict = None, timeout: int = 180) -> Dict:
     """Make API call with proper error handling"""
     url = f"{API_URL}{endpoint}"
@@ -203,12 +204,21 @@ async def call_api(endpoint: str, method: str = "POST", params: Dict = None, jso
             if method == "POST":
                 async with session.post(url, **kwargs) as resp:
                     if resp.status == 422:
-                        text = await resp.text()
-                        return {"status": "error", "message": f"Validation Error: {text}"}
-                    return await resp.json()
+                        try:
+                            text = await resp.text()
+                            return {"status": "error", "message": f"Validation Error: {text}"}
+                        except:
+                            return {"status": "error", "message": "Validation Error"}
+                    try:
+                        return await resp.json()
+                    except:
+                        return {"status": "error", "message": f"Invalid JSON response: {await resp.text()}"}
             else:
                 async with session.get(url, **kwargs) as resp:
-                    return await resp.json()
+                    try:
+                        return await resp.json()
+                    except:
+                        return {"status": "error", "message": f"Invalid JSON response: {await resp.text()}"}
                     
     except aiohttp.ClientConnectorError:
         return {"status": "error", "message": f"Cannot connect to backend at {API_URL}"}
@@ -233,15 +243,18 @@ def show_main_menu() -> str:
     )
     menu_content.add_row(
         "💬 [02]", "[bold white]Chat Mode[/bold white]       ",
-        "📊 [06]", "[bold white]System Status[/bold white]"
+        "📊 [06]", "[bold white]System Info[/bold white]"
     )
     menu_content.add_row(
         "📚 [03]", "[bold white]Deep Research[/bold white]   ",
-        "🚪 [00]", "[bold red]Exit[/bold red]"
+        "🚀 [07]", "[bold white]Strategy Stats[/bold white]"
     )
     menu_content.add_row(
         "🕷️ [04]", "[bold white]Scraper Tool[/bold white]    ",
-        "", ""
+        "⚙️ [08]", "[bold white]Settings[/bold white]"
+    )
+    menu_content.add_row(
+        "", "", "🚪 [00]", "[bold red]Exit[/bold red]"
     )
     
     menu_panel = Panel(
@@ -256,46 +269,18 @@ def show_main_menu() -> str:
     console.print()
     
     choice = Prompt.ask(
-        "[bold cyan]┃[/bold cyan] [bold white]Enter your choice[/bold white]",
-        choices=["01", "1", "02", "2", "03", "3", "04", "4", "05", "5", "06", "6", "00", "0"],
+        "[bold cyan]┃[/bold cyan] [bold white]Enter your choice[/bold white] [dim](0-8)[/dim]",
         default="01"
     )
     
-    # Normalize (01 -> 1)
-    if choice.startswith("0") and len(choice) > 1:
-        choice = choice[1]
+    # Robust normalization
+    try:
+        choice = str(int(choice.strip()))
+    except ValueError:
+        return "-1"
     
     return choice
 
-async def call_api(endpoint: str, method: str = "POST", params: Dict = None, json_data: Dict = None, timeout: int = 180) -> Dict:
-    """Make API call with proper error handling"""
-    url = f"{API_URL}{endpoint}"
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            kwargs = {"timeout": aiohttp.ClientTimeout(total=timeout)}
-            
-            if params:
-                kwargs["params"] = params
-            if json_data:
-                kwargs["json"] = json_data
-            
-            if method == "POST":
-                async with session.post(url, **kwargs) as resp:
-                    if resp.status == 422:
-                        text = await resp.text()
-                        return {"status": "error", "message": f"Validation Error: {text}"}
-                    return await resp.json()
-            else:
-                async with session.get(url, **kwargs) as resp:
-                    return await resp.json()
-                    
-    except aiohttp.ClientConnectorError:
-        return {"status": "error", "message": f"Cannot connect to backend at {API_URL}"}
-    except asyncio.TimeoutError:
-        return {"status": "error", "message": "Request timeout - operation took too long"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
 
 # ========== MODE HANDLERS ==========
 
@@ -390,13 +375,14 @@ async def master_ai_handler(query: str):
                 console.print()
                 console.print(sources_table)
     
+
     elif result_type == "scrape_result":
         # Single URL scrape result
         if result_data.get("success"):
             # Show extracted/analyzed data
             if result_data.get("extracted_data"):
                 console.print(Panel(
-                    Markdown(result_data["extracted_data"]),
+                    Markdown(result_data["extracted_data"] if isinstance(result_data["extracted_data"], str) else str(result_data["extracted_data"])),
                     title="[bold green]✨ Extracted Insights[/bold green]",
                     border_style="green",
                     padding=(1, 2)
@@ -412,6 +398,17 @@ async def master_ai_handler(query: str):
             
             console.print()
             console.print(Panel(stats_grid, title="[bold cyan]📊 Scraping Stats[/bold cyan]", border_style="cyan"))
+
+            # Show File Saved
+            if result_data.get("file_path"):
+                console.print()
+                console.print(Panel(
+                    f"[bold white]{result_data['file_path']}[/bold white]",
+                    title="[bold green]💾 Data Saved to File[/bold green]",
+                    border_style="green",
+                    padding=(1, 2)
+                ))
+
         else:
             console.print(Panel(
                 f"[bold yellow]⚠️ Scraping Failed[/bold yellow]\n\n{result_data.get('error', 'Unknown error')}",
@@ -716,6 +713,7 @@ async def deep_research_handler(query: str):
             sources_table.add_column("Source", style="bold white")
             sources_table.add_column("URL", style="blue underline", overflow="fold")
             
+
             for i, src in enumerate(result["sources"], 1):
                 title = src.get('title', 'Untitled Source')
                 url = src.get('url', 'N/A')
@@ -723,6 +721,16 @@ async def deep_research_handler(query: str):
             
             console.print()
             console.print(sources_table)
+            
+            # Show file path if saved
+            if result.get("file_path"):
+                console.print()
+                console.print(Panel(
+                    f"[bold white]{result['file_path']}[/bold white]",
+                    title="[bold green]💾 Detailed Report Saved[/bold green]",
+                    border_style="green",
+                    padding=(1, 2)
+                ))
     else:
         console.print(Panel(str(result), title="Result", border_style="cyan"))
 
@@ -1063,12 +1071,212 @@ async def system_status_handler():
             padding=(0, 2)
         ))
 
+
+async def strategy_stats_handler():
+    """Display comprehensive strategy statistics with visualization"""
+    
+    # Fetch stats
+    with Progress(
+        SpinnerColumn(spinner_name="dots"),
+        TextColumn("[bold cyan]Fetching strategy intelligence...[/bold cyan]"),
+        transient=True
+    ) as progress:
+        task = progress.add_task("fetching", total=None)
+        
+        # Fetch both scraper stats and strategy engine stats
+        scraper_stats = await call_api("/api/v1/scraper-stats", method="GET")
+        strategy_stats = await call_api("/api/v1/strategy/stats", method="GET")
+        
+    console.print(Panel(
+        "[bold cyan]📊 Strategy Performance Dashboard[/bold cyan]", 
+        border_style="cyan",
+        subtitle="[dim]Real-time scraping intelligence[/dim]"
+    ))
+    console.print()
+
+    # 1. Strategy Comparison Table
+    if scraper_stats.get("status") == "success":
+        strategies = scraper_stats.get("strategies", {})
+        
+        table = Table(
+            title="[bold white]Strategy Success Rates[/bold white]",
+            border_style="dim",
+            header_style="bold magenta",
+            box=None
+        )
+        table.add_column("Strategy", style="cyan")
+        table.add_column("Description", style="dim white")
+        table.add_column("Successes", justify="right", style="green")
+        table.add_column("Rate", justify="right", style="bold yellow")
+        
+        for key, data in strategies.items():
+            name = data.get("name", key)
+            desc = data.get("description", "")
+            count = data.get("success_count", 0)
+            rate = data.get("success_rate", "0%")
+            
+            # Color code the rate
+            rate_val = float(rate.strip('%')) if '%' in rate else 0
+            rate_style = "green" if rate_val > 80 else "yellow" if rate_val > 50 else "red"
+            
+            table.add_row(name, desc, str(count), f"[{rate_style}]{rate}[/{rate_style}]")
+            
+        console.print(table)
+        console.print()
+        
+        # Overall totals
+        totals = scraper_stats.get("totals", {})
+        grid = Table.grid(padding=(0, 4))
+        grid.add_column(justify="center", style="bold white")
+        grid.add_column(justify="center", style="bold white")
+        grid.add_column(justify="center", style="bold white")
+        
+        grid.add_row(
+            f"[bold cyan]{totals.get('total_requests', 0)}[/bold cyan]\nTotal Requests",
+            f"[bold green]{totals.get('overall_success_rate', '0%')}[/bold green]\nOverall Success",
+            f"[bold red]{totals.get('total_failures', 0)}[/bold red]\nFailures"
+        )
+        console.print(Panel(grid, border_style="dim"))
+        console.print()
+
+    # 2. Learning Insights
+    if strategy_stats.get("status") == "success":
+        stats = strategy_stats.get("stats", {})
+        learning = stats.get("learning", {})
+        
+        if learning:
+            console.print("[bold yellow]🧠 Adaptive Learning Insights[/bold yellow]")
+            
+            # Show top learned domains
+            domain_table = Table(show_header=True, header_style="bold white", border_style="dim", box=None)
+            domain_table.add_column("Domain", style="cyan")
+            domain_table.add_column("Best Strategy", style="green")
+            domain_table.add_column("Success Rate", justify="right")
+            
+
+            count = 0
+            for domain, data in learning.items():
+                if count >= 5: break
+                
+                # Handle different data structures
+                if isinstance(data, dict):
+                    best = data.get("best_strategy", "unknown")
+                    rate_val = data.get("success_rate", 0)
+                else:
+                    # Fallback if data is just a number or string
+                    best = "auto"
+                    rate_val = 0
+                
+                rate = f"{rate_val*100:.0f}%"
+                domain_table.add_row(domain, best, rate)
+                count += 1
+            
+            if count > 0:
+                console.print(domain_table)
+            else:
+                console.print("[dim]No learning data yet. Start scraping to train the AI![/dim]")
+
+    console.print()
+    Prompt.ask("[dim]Press Enter to return to menu...[/dim]")
+
+def settings_handler():
+    """Handle settings configuration with easy toggles"""
+    global USE_OLLAMA
+    
+    while True:
+        console.clear()
+        console.print(Panel(
+            "[bold white]⚙️  Settings & Configuration[/bold white]",
+            border_style="cyan"
+        ))
+        console.print()
+        
+        # Display current settings
+        settings_table = Table(show_header=True, header_style="bold magenta", box=None)
+        settings_table.add_column("Setting", style="bold white")
+        settings_table.add_column("State", style="bold")
+        settings_table.add_column("Description", style="dim")
+        
+        ollama_state = "[green]ON (Local AI)[/green]" if USE_OLLAMA else "[yellow]OFF (Cloud AI)[/yellow]"
+        settings_table.add_row(
+            "[1] AI Provider", 
+            ollama_state, 
+            "Toggle between Cloud (Gemini/Groq) and Local (Ollama)"
+        )
+        
+        console.print(settings_table)
+        console.print()
+        console.print("[dim]Enter the number to toggle setting, or 0 to return[/dim]")
+        
+        choice = Prompt.ask("Select option", choices=["1", "0"], default="0")
+        
+        if choice == "0":
+            break
+        elif choice == "1":
+            # Check availability before enabling
+            if not USE_OLLAMA:
+                try:
+                    resp = requests.get("http://localhost:11434/api/tags", timeout=1)
+                    if resp.status_code == 200:
+                        USE_OLLAMA = True
+                        console.print("[green]✅ Switched to Local Ollama AI[/green]")
+                    else:
+                        console.print("[red]❌ Ollama is not running on localhost:11434[/red]")
+                except:
+                    console.print("[red]❌ Ollama is not detected[/red]")
+                    console.print("[dim]Make sure 'ollama serve' is running[/dim]")
+                time.sleep(1.5)
+            else:
+                USE_OLLAMA = False
+                console.print("[yellow]⚡ Switched to Cloud AI (Gemini/Groq)[/yellow]")
+                time.sleep(1)
+
+async def interactive_master_ai():
+    """Continuous conversation loop with the unified agent"""
+    console.clear()
+    console.print(Panel(
+        "[bold green]🤖 Master AI Console[/bold green]\n"
+        "[dim]Talk naturally. Type 'exit' to return to menu, 'clear' to reset history.[/dim]",
+        border_style="green",
+        title="[bold white]Unified Agent[/bold white]"
+    ))
+    
+    # Get history first
+    history_resp = await call_api("/api/v1/agent/history", method="GET")
+    if history_resp.get("status") == "success":
+        history_len = len(history_resp.get("history", []))
+        if history_len > 0:
+            console.print(f"[dim]Loaded {history_len} previous messages[/dim]")
+    
+    while True:
+        try:
+            console.print()
+            query = Prompt.ask("[bold cyan]You[/bold cyan]")
+            
+            if not query.strip():
+                continue
+                
+            if query.lower() in ["exit", "quit", "menu", "back"]:
+                break
+            
+            if query.lower() in ["clear", "reset"]:
+                await call_api("/api/v1/agent/clear", method="POST")
+                console.print("[dim]Conversation history cleared[/dim]")
+                continue
+                
+            # Reuse the master logic but in-line
+            await master_ai_handler(query)
+            
+        except KeyboardInterrupt:
+            break
+
 # ========== MAIN LOOP ==========
 
 def interactive_mode():
     """Main interactive loop with enhanced UI"""
     while True:
         choice = show_main_menu()
+        console.print(f"[dim]Debug: Processing '{choice}'[/dim]")
         
         if choice == "0":
             # Enhanced exit message
@@ -1084,25 +1292,15 @@ def interactive_mode():
             console.print()
             break
         
+
         try:
             console.print()
-            
+            # console.print(f"[debug] Choice processed: '{choice}'") # Uncomment for debugging
+
             if choice == "1":
                 # Master AI Mode - THE SMART ONE
-                console.print(Panel(
-                    "[bold yellow]🤖 Master AI Mode[/bold yellow]\n[dim]Tell me anything - I'll figure out what you need![/dim]\n\n"
-                    "[dim italic]Examples:[/dim italic]\n"
-                    "[dim]• Compare these two Amazon products...[/dim]\n"
-                    "[dim]• Scrape this URL and give insights...[/dim]\n"
-                    "[dim]• Find me 50 companies with low prices...[/dim]\n"
-                    "[dim]• What's the latest news on AI?[/dim]",
-                    border_style="yellow",
-                    padding=(1, 2)
-                ))
-                console.print()
-                query = Prompt.ask("[bold yellow]┃[/bold yellow] [bold white]What would you like me to do?[/bold white]")
-                if query.strip():
-                    asyncio.run(master_ai_handler(query))
+                asyncio.run(interactive_master_ai())
+
             
             elif choice == "2":
                 # Chat Mode
@@ -1144,14 +1342,17 @@ def interactive_mode():
                 # Site Analyzer
                 console.print(Panel(
                     "[bold white]🔍 Site Analyzer[/bold white]\n[dim]Analyze website protection and structure[/dim]",
-                    border_style="magenta",
+                    border_style="cyan",
                     padding=(0, 2)
                 ))
                 console.print()
-                url = Prompt.ask("[bold magenta]┃[/bold magenta] [bold white]URL to analyze[/bold white]")
+                url = Prompt.ask("[bold cyan]┃[/bold cyan] [bold white]URL to analyze[/bold white]")
                 if url.strip():
                     asyncio.run(site_analyzer_handler(url))
+                else:
+                    console.print("[yellow]No URL provided[/yellow]")
             
+
             elif choice == "6":
                 # System Status
                 console.print(Panel(
@@ -1161,6 +1362,15 @@ def interactive_mode():
                 ))
                 console.print()
                 asyncio.run(system_status_handler())
+
+            elif choice == "7":
+                asyncio.run(strategy_stats_handler())
+
+            elif choice == "8":
+                settings_handler()
+                
+            else:
+                console.print(f"[red]Invalid selection: {choice}[/red]")
         
         except KeyboardInterrupt:
             console.print("\n")
@@ -1299,9 +1509,19 @@ def interactive_mode():
                 if url.strip():
                     asyncio.run(site_analyzer_handler(url))
             
-            elif choice == "5":
-                # System Status
+
+            elif choice == "6":
+                # System Info
                 asyncio.run(system_status_handler())
+            
+            elif choice == "7":
+                # Strategy Statistics
+                asyncio.run(strategy_stats_handler())
+                
+            elif choice == "8":
+                # Settings
+                settings_handler()
+
         
         except KeyboardInterrupt:
             console.print("\n[yellow]Operation cancelled[/yellow]")

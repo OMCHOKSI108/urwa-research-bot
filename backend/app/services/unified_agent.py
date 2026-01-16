@@ -30,12 +30,14 @@ class UnifiedAgent:
             r"analysis", r"trends", r"compare", r"difference between",
             r"impact", r"effect", r"pros and cons", r"best"
         ],
+
         "scrape": [
             r"scrape", r"extract", r"get data from", r"fetch",
-            r"pull from", r"grab", r"collect from"
+            r"pull from", r"grab", r"collect from", r"download", 
+            r"save to", r"export to", r"store in"
         ],
         "scrape_url": [
-            r"https?://", r"www\.", r"\.com", r"\.org", r"\.net"
+            r"https?://", r"www\.", r"\.com\b", r"\.org\b", r"\.net\b", r"\.io\b", r"\.co\b"
         ],
         "fact_check": [
             r"is it true", r"verify", r"fact check", r"is .+ correct",
@@ -134,10 +136,19 @@ class UnifiedAgent:
             if score > 0:
                 scores[intent] = score
         
+
         if scores:
             best_intent = max(scores, key=scores.get)
             confidence = min(0.9, 0.5 + (scores[best_intent] * 0.1))
             
+            # If explicit scrape keywords are present, prioritize scrape over research
+            if "scrape" in scores and scores["scrape"] > 0:
+                # Even if research has more matches (like "what", "is"), "scrape" is a strong action verb
+                if "research" in scores and scores["research"] >= scores["scrape"]:
+                     # Only override if explicit "scrape" word is in input
+                     if "scrape" in input_lower or "extract" in input_lower:
+                         return "scrape", 0.9
+
             # Research is the default for question-like inputs
             if best_intent in ["research", "scrape_url"] or "?" in user_input:
                 return "research", confidence
@@ -296,6 +307,21 @@ User request: {user_input}
                     params["data_type"] = dtype
                     break
         
+
+        # Detect output format
+        for fmt in ["csv", "json", "excel", "markdown"]:
+            if fmt in user_input.lower():
+                params["output_format"] = fmt
+                params["save_to_file"] = True
+                break
+        
+        # Detect explicit save instructions
+        if any(w in user_input.lower() for w in ["save", "store", "download", "export", "file"]):
+            params["save_to_file"] = True
+            if "output_format" not in params:
+                 # Default to CSV for structured data if not specified but save requested
+                 params["output_format"] = "csv"
+
         return params
     
     async def _execute_action(self, intent: str, params: Dict, user_input: str) -> Dict:
@@ -313,10 +339,21 @@ User request: {user_input}
                     "follow_up_questions": result.get("follow_up_questions", [])
                 }
             
+
             # SCRAPE: Extract data from a URL
             elif intent == "scrape":
+                # Auto-discovery if URL is missing
                 if "url" not in params:
-                    return {"type": "error", "message": "Please provide a URL to scrape"}
+                    logger.info(f"[Agent] No URL provided, searching for top result for: {user_input}")
+                    try:
+                        search_results = await self.orchestrator.perform_search_multi_engine(user_input, max_results=1)
+                        if search_results and len(search_results) > 0:
+                            params["url"] = search_results[0]
+                            logger.info(f"[Agent] Discovered URL: {params['url']}")
+                        else:
+                            return {"type": "error", "message": "Could not find a URL to scrape. Please provide a specific link."}
+                    except Exception as e:
+                        return {"type": "error", "message": f"URL discovery failed: {str(e)}"}
                 
                 from app.agents.hybrid_scraper import HybridScraper
                 scraper = HybridScraper()
@@ -372,13 +409,93 @@ Extract and format the requested information clearly. Use markdown formatting.""
 
                     extracted = await self.llm.process(extraction_prompt)
                     
+
+                    # Handle File Saving if requested
+                    file_path = None
+                    file_url = None
+                    if params.get("save_to_file"):
+                        try:
+                            # 1. Determine Output Format
+                            fmt = params.get("output_format", "json")
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            safe_url = re.sub(r'[^a-zA-Z0-9]', '_', params['url'])[:30]
+                            filename = f"scrape_{safe_url}_{timestamp}.{fmt}"
+                            
+                            # 2. Prepare Data
+                            save_data = extracted if extracted else {"raw_content": content_preview}
+                            
+                            # 3. Save File
+                            import os
+                            import json
+                            import csv
+                            
+                            # Define export path (using absolute path based on project structure)
+                            # Assuming backend/app/static/exports exists (created in main.py)
+                            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                            EXPORT_DIR = os.path.join(BASE_DIR, "app", "static", "exports")
+                            os.makedirs(EXPORT_DIR, exist_ok=True)
+                            
+                            full_path = os.path.join(EXPORT_DIR, filename)
+                            
+                            if fmt == "csv":
+                                # Try to flatten JSON to CSV
+                                if isinstance(save_data, str):
+                                    # If it's a string, try to parse it as JSON first
+                                    try:
+                                        save_data = json.loads(save_data)
+                                    except:
+                                        pass # Keep as string
+                                        
+                                if isinstance(save_data, list):
+                                    items = save_data
+                                elif isinstance(save_data, dict):
+                                    # Look for lists in the dict
+                                    items = []
+                                    for key, val in save_data.items():
+                                        if isinstance(val, list):
+                                            items = val
+                                            break
+                                    if not items:
+                                        items = [save_data]
+                                else:
+                                    items = [{"content": str(save_data)}]
+                                    
+                                if items and isinstance(items[0], dict):
+                                    keys = items[0].keys()
+                                    with open(full_path, 'w', newline='', encoding='utf-8') as f:
+                                        writer = csv.DictWriter(f, fieldnames=keys)
+                                        writer.writeheader()
+                                        writer.writerows(items)
+                                else:
+                                    # Fallback for non-dict items
+                                    with open(full_path, 'w', encoding='utf-8') as f:
+                                        f.write(str(save_data))
+                                        
+                            else: # JSON default
+                                with open(full_path, 'w', encoding='utf-8') as f:
+                                    if isinstance(save_data, str):
+                                        # Write raw string if that's what we have
+                                        f.write(save_data)
+                                    else:
+                                        json.dump(save_data, f, indent=2)
+                                        
+                            file_path = full_path
+                            file_url = f"/exports/{filename}"
+                            logger.info(f"[Agent] Saved scrape results to {full_path}")
+                            
+                        except Exception as e:
+                            logger.error(f"Failed to save file: {e}")
+                    
                     return {
                         "type": "scrape_result",
                         "url": params["url"],
                         "extracted_data": extracted,
                         "content": content_preview,
                         "content_length": len(content),
-                        "success": True
+                        "success": True,
+                        "file_path": file_path,
+                        "file_download_url": file_url,
+                        "output_format": params.get("output_format")
                     }
                 else:
                     return {
