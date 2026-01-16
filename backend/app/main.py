@@ -5,7 +5,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel
-import datetime
+from datetime import datetime
+import datetime as dt
 
 from app.models.schemas import (
     SmartScrapeRequest, ScrapeResponse, TaskResponse, ChatRequest, SearchRequest, 
@@ -48,9 +49,91 @@ limiter = Limiter(key_func=get_remote_address)
 
 # --- App Initialization ---
 app = FastAPI(
-    title="URWA Brain - Smart Agent",
-    description="Universal Research Web Agent - AI-powered web scraping with stealth capabilities",
-    version="2.2.0"
+    title="URWA Brain v3.5",
+    description="""
+# 🧠 Universal Research Web Agent (URWA Brain)
+
+## AI-Powered Autonomous Research & Web Intelligence Platform
+
+URWA Brain is an intelligent web scraping and research platform that combines the power of AI with advanced stealth techniques to extract structured intelligence from any website.
+
+### 🎯 Key Features
+
+* **Intent-Aware Agent** - Understands natural language and automatically routes requests
+* **Ultra-Stealth Scraping** - Bypasses Cloudflare, bot detection, and CAPTCHA challenges
+* **Deep Research Mode** - Multi-source web search with AI synthesis and citations
+* **Local & Cloud AI** - Supports both Ollama (private) and Groq/Gemini (cloud)
+* **Adaptive Learning** - Learns successful strategies per domain
+* **Production-Grade** - Rate limiting, compliance checking, and evidence capture
+
+### 🚀 Getting Started
+
+1. **Unified Agent** - Use `/api/v1/agent` for any request (research, scrape, analyze)
+2. **Research** - Use `/api/v1/research` for deep web research with citations
+3. **Scraping** - Use `/api/v1/scrape` for direct URL extraction
+
+### 📚 Documentation
+
+* [GitHub Repository](https://github.com/OMCHOKSI108/urwa-brain)
+* [Full Documentation](https://urwa-brain.docs.io)
+* [CLI Guide](https://github.com/OMCHOKSI108/urwa-brain/tree/main/terminal)
+
+### ⚖️ Legal Notice
+
+This API is designed for ethical and legal web data collection. Users are responsible for compliance with applicable laws and website terms of service.
+    """,
+    version="3.5.0",
+    terms_of_service="https://github.com/OMCHOKSI108/urwa-brain/blob/main/LICENSE",
+    contact={
+        "name": "URWA Team",
+        "url": "https://github.com/OMCHOKSI108/urwa-brain",
+        "email": "support@urwa-brain.dev"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT"
+    },
+    openapi_tags=[
+        {
+            "name": "Status",
+            "description": "Health checks and system status endpoints"
+        },
+        {
+            "name": "AI Agent",
+            "description": "Unified AI agent that handles any request intelligently - research, scraping, or analysis"
+        },
+        {
+            "name": "Research",
+            "description": "Deep web research with multi-source search, AI synthesis, and citations"
+        },
+        {
+            "name": "Scraping",
+            "description": "Advanced web scraping with multi-level stealth strategies"
+        },
+        {
+            "name": "Site Intelligence",
+            "description": "Site profiling, protection detection, and compliance checking"
+        },
+        {
+            "name": "Chat Mode",
+            "description": "Natural language chat interface with intelligent URL detection"
+        },
+        {
+            "name": "Search Mode",
+            "description": "Traditional web search with AI-powered analysis"
+        },
+        {
+            "name": "Analysis",
+            "description": "Batch analysis and data quality assessment"
+        },
+        {
+            "name": "System",
+            "description": "System metrics, logs, and statistics"
+        }
+    ],
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 app.state.limiter = limiter
@@ -122,13 +205,42 @@ def get_orchestrator():
 
 # --- Routes ---
 
-@app.get("/", tags=["Status"])
+@app.get(
+    "/",
+    tags=["Status"],
+    summary="Root endpoint",
+    response_description="System status and version info"
+)
 async def root():
-    return {"status": "URWA Brain Online", "version": "3.0.0", "ai_agent": "enabled"}
+    """
+    **System Status**
+    
+    Returns the current status of the URWA Brain API.
+    """
+    return {
+        "status": "URWA Brain Online",
+        "version": "3.5.0",
+        "ai_agent": "enabled",
+        "docs": "/docs",
+        "redoc": "/redoc"
+    }
 
-@app.get("/health", tags=["Status"])
+@app.get(
+    "/health",
+    tags=["Status"],
+    summary="Health check",
+    response_description="Health status"
+)
 async def health_check():
-    return {"status": "healthy"}
+    """
+    **Health Check Endpoint**
+    
+    Returns the health status of the API. Used by monitoring systems and load balancers.
+    """
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat()
+    }
 
 
 # ============================================================================
@@ -238,59 +350,58 @@ class ResearchChatRequest(BaseModel):
     deep: bool = False
     use_ollama: bool = False
 
-@app.post("/api/v1/research", tags=["Research"])
+@app.post(
+    "/api/v1/research",
+    tags=["Research"],
+    summary="AI-powered deep research",
+    response_description="Comprehensive research results with citations"
+)
 @limiter.limit("10/minute")
 async def research_query(
     request: Request,
     body: ResearchChatRequest
 ):
     """
-    Perplexity-style AI Research Chat.
+    **Perplexity-Style AI Research Chat**
     
     Takes a question, searches the web, scrapes sources, and returns
     a comprehensive AI-generated answer with citations.
-    """
-    try:
-        # Choose chat service based on LLM preference
-        chat_service = research_chat_ollama if body.use_ollama else research_chat
-        return await chat_service.chat(body.query, deep_research=body.deep)
-    except Exception as e:
-        logger.error(f"Research error: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-    """
     
-    **Example:**
-    ```
-    POST /api/v1/research?query=what is current bitcoin market conditions
-    POST /api/v1/research?query=top 10 economies&use_ollama=true  # Use local Ollama
-    ```
+    **Example Queries:**
+    - "What are the current bitcoin market conditions?"
+    - "Top 10 economies and their GDP"
+    - "Latest AI trends in healthcare 2024"
+    - "Compare Python vs JavaScript for backend development"
     
     **Response:**
     ```json
     {
+        "status": "success",
         "answer": "Based on current market data...",
-        "sources": [{"url": "...", "title": "..."}],
-        "follow_up_questions": ["What about Ethereum?", ...],
+        "sources": [
+            {"url": "https://...", "title": "..."}
+        ],
+        "follow_up_questions": ["What about Ethereum?"],
         "confidence": 0.85,
-        "research_time": 5.2
+        "research_time": 5.2,
+        "llm_used": "gemini"
     }
     ```
     
-    Parameters:
-    - **query**: Your question (natural language)
-    - **deep**: If true, scrapes more sources (slower but more comprehensive)
-    - **use_ollama**: If true, uses local Ollama LLM instead of cloud Gemini/Groq
+    **Parameters:**
+    - **query**: Your research question (natural language)
+    - **deep**: Enable deep research mode (scrapes more sources, slower but comprehensive)
+    - **use_ollama**: Use local Ollama LLM instead of cloud Gemini/Groq
+    
+    **Rate Limit:** 10 requests per minute
     """
     try:
         # Choose LLM based on parameter
-        chat_service = research_chat_ollama if use_ollama else research_chat
-        result = await chat_service.chat(query, deep_research=deep)
+        chat_service = research_chat_ollama if body.use_ollama else research_chat
+        result = await chat_service.chat(body.query, deep_research=body.deep)
         return {
             "status": "success",
-            "llm_used": "ollama" if use_ollama else "gemini/groq",
+            "llm_used": "ollama" if body.use_ollama else "gemini/groq",
             **result
         }
     except Exception as e:
@@ -298,7 +409,7 @@ async def research_query(
         return {
             "status": "error",
             "message": str(e),
-            "query": query
+            "query": body.query
         }
 
 
@@ -317,15 +428,52 @@ async def clear_research_history():
     research_chat.clear_history()
     return {"status": "success", "message": "History cleared"}
 
-@app.get("/api/v1/scraper-stats", tags=["Status"])
+@app.get(
+    "/api/v1/scraper-stats",
+    tags=["System"],
+    summary="Scraper performance statistics",
+    response_description="Detailed scraping stats by strategy"
+)
 async def scraper_stats():
     """
-    Get scraping strategy statistics.
+    **Scraping Strategy Performance Statistics**
     
-    Returns success rates and counts for each scraping strategy:
-    - Lightweight HTTP (fastest)
-    - Playwright Stealth (JavaScript rendering)
-    - Ultra Stealth (anti-bot bypass)
+    Returns success rates and counts for each scraping strategy.
+    
+    **Strategies:**
+    - **Lightweight HTTP**: Fast HTTP requests for static pages
+    - **Playwright Stealth**: Browser-based scraping for JavaScript-rendered pages
+    - **Ultra Stealth**: Maximum anti-bot bypass for heavily protected sites
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "strategies": {
+            "lightweight": {
+                "name": "Lightweight HTTP",
+                "success_count": 150,
+                "success_rate": "85.5%"
+            },
+            "playwright": {
+                "name": "Stealth Playwright",
+                "success_count": 75,
+                "success_rate": "68.2%"
+            },
+            "ultra_stealth": {
+                "name": "Ultra Stealth Mode",
+                "success_count": 30,
+                "success_rate": "90.9%"
+            }
+        },
+        "totals": {
+            "total_requests": 300,
+            "total_failures": 45,
+            "overall_success_rate": "85.0%"
+        },
+        "protected_sites": ["linkedin.com", "facebook.com", ...]
+    }
+    ```
     """
     stats = scraper.get_stats()
     
@@ -363,11 +511,23 @@ async def scraper_stats():
     }
 
 
-@app.post("/api/v1/scraper-cache/clear", tags=["Status"])
+@app.post(
+    "/api/v1/scraper-cache/clear",
+    tags=["System"],
+    summary="Clear scraper cache",
+    response_description="Cache cleared confirmation"
+)
 async def clear_scraper_cache():
     """
-    Clear the scraper cache and reset statistics.
+    **Clear Scraper Cache & Reset Statistics**
+    
+    Clears the scraper cache and resets all statistics.
     Useful for testing or when you want fresh scrapes.
+    
+    **Use Cases:**
+    - Testing strategy effectiveness
+    - Forcing fresh content retrieval
+    - Resetting statistics after configuration changes
     """
     scraper.clear_cache()
     return {
@@ -381,16 +541,44 @@ async def clear_scraper_cache():
 # STRATEGY ENDPOINTS - Production-grade scraping intelligence
 # ============================================================================
 
-@app.get("/api/v1/strategy/profile-site", tags=["Strategy"])
+@app.get(
+    "/api/v1/strategy/profile-site",
+    tags=["Site Intelligence"],
+    summary="Profile website protection level",
+    response_description="Site protection profile"
+)
 async def profile_site(url: str):
     """
-    Profile a website to detect protection level before scraping.
+    **Website Protection Profiler**
     
-    Detects:
-    - Bot protection (Cloudflare, Akamai, DataDome, etc.)
+    Analyzes a website before scraping to detect protection mechanisms.
+    
+    **Detects:**
+    - Bot protection (Cloudflare, Akamai, DataDome, PerimeterX)
     - JavaScript rendering requirements
     - CAPTCHA presence
+    - Rate limiting strategies
     - Recommended scraping strategy
+    
+    **Example:**
+    ```
+    GET /api/v1/strategy/profile-site?url=https://linkedin.com
+    ```
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "profile": {
+            "domain": "linkedin.com",
+            "protection_level": "extreme",
+            "bot_detection": ["cloudflare", "captcha"],
+            "requires_js": true,
+            "recommended_strategy": "ultra_stealth",
+            "estimated_success_rate": 0.75
+        }
+    }
+    ```
     """
     profile = await site_profiler.profile(url)
     return {
@@ -399,16 +587,42 @@ async def profile_site(url: str):
     }
 
 
-@app.get("/api/v1/strategy/compliance-check", tags=["Strategy"])
+@app.get(
+    "/api/v1/strategy/compliance-check",
+    tags=["Site Intelligence"],
+    summary="Check scraping compliance",
+    response_description="Compliance check result"
+)
 async def check_compliance(url: str):
     """
-    Check if a URL can be scraped compliantly.
+    **Website Scraping Compliance Checker**
     
-    Checks:
+    Checks if a URL can be scraped compliantly according to website rules.
+    
+    **Checks:**
     - robots.txt rules
     - Crawl-delay requirements
     - Blacklist status
-    - ToS warnings
+    - Terms of Service warnings
+    
+    **Example:**
+    ```
+    GET /api/v1/strategy/compliance-check?url=https://example.com
+    ```
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "compliance": {
+            "can_scrape": true,
+            "robots_txt_allowed": true,
+            "crawl_delay": 1,
+            "blacklisted": false,
+            "warnings": []
+        }
+    }
+    ```
     """
     result = await compliance_checker.check(url)
     return {
@@ -417,12 +631,19 @@ async def check_compliance(url: str):
     }
 
 
-@app.get("/api/v1/strategy/stats", tags=["Strategy"])
+@app.get(
+    "/api/v1/strategy/stats",
+    tags=["System"],
+    summary="Strategy statistics",
+    response_description="Comprehensive strategy stats"
+)
 async def strategy_stats():
     """
+    **Scraping Strategy Statistics**
+    
     Get comprehensive statistics from all scraping strategies.
     
-    Includes:
+    **Includes:**
     - Learning data (success rates per domain)
     - Rate control status
     - Failure evidence summary
@@ -485,16 +706,49 @@ async def clear_strategy_data():
 # ADVANCED BYPASS ENDPOINTS - For protected sites
 # ============================================================================
 
-@app.post("/api/v1/protected-scrape", tags=["Advanced"])
+@app.post(
+    "/api/v1/protected-scrape",
+    tags=["Scraping"],
+    summary="Scrape protected sites",
+    response_description="Scraping result from protected site"
+)
 async def protected_scrape(url: str, instruction: str = None):
     """
-    Scrape protected sites using site-specific strategies.
+    **Protected Site Scraper**
     
-    Supports:
-    - LinkedIn (via Google Cache, Bing, Web Archive)
-    - Amazon (via mobile URLs, search extraction)
-    - Indeed (via RSS feeds, Google Jobs)
-    - Twitter/Instagram/Facebook (via oEmbed)
+    Scrape heavily protected sites using site-specific strategies and bypass techniques.
+    
+    **Supported Sites:**
+    - **LinkedIn**: via Google Cache, Bing, Web Archive
+    - **Amazon**: via mobile URLs, search extraction
+    - **Indeed**: via RSS feeds, Google Jobs API
+    - **Twitter/X**: via oEmbed API
+    - **Instagram**: via oEmbed API
+    - **Facebook**: via oEmbed API
+    
+    **Parameters:**
+    - **url**: The protected URL to scrape
+    - **instruction**: Additional context (e.g., for Indeed: "software engineer")
+    
+    **Examples:**
+    ```
+    POST /api/v1/protected-scrape?url=https://linkedin.com/in/username
+    POST /api/v1/protected-scrape?url=https://amazon.com/dp/B0BSHF7WHW
+    POST /api/v1/protected-scrape?url=https://indeed.com&instruction=python developer remote
+    ```
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "url": "https://...",
+        "result": {
+            "success": true,
+            "data": {...},
+            "method": "google_cache"
+        }
+    }
+    ```
     """
     from app.strategies.site_specific import get_site_scraper
     
@@ -536,15 +790,39 @@ async def protected_scrape(url: str, instruction: str = None):
         }
 
 
-@app.get("/api/v1/human-queue", tags=["Advanced"])
+@app.get(
+    "/api/v1/human-queue",
+    tags=["Scraping"],
+    summary="Get human intervention queue",
+    response_description="List of tasks requiring human help"
+)
 async def get_human_queue():
     """
+    **Human Intervention Queue**
+    
     Get pending tasks requiring human intervention.
     
-    Tasks include:
+    **Task Types:**
     - CAPTCHA solving
     - Login requirements
     - Verification challenges
+    - Two-factor authentication
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "pending_tasks": [
+            {
+                "task_id": "abc123",
+                "type": "captcha",
+                "url": "https://...",
+                "created_at": "2024-01-16T10:30:00Z"
+            }
+        ],
+        "total_pending": 1
+    }
+    ```
     """
     from app.strategies.advanced_bypass import human_queue
     
@@ -555,13 +833,28 @@ async def get_human_queue():
     }
 
 
-@app.post("/api/v1/human-queue/{task_id}/complete", tags=["Advanced"])
+@app.post(
+    "/api/v1/human-queue/{task_id}/complete",
+    tags=["Scraping"],
+    summary="Complete human intervention task",
+    response_description="Task completion status"
+)
 async def complete_human_task(task_id: str, result: dict):
     """
-    Complete a human queue task with solution.
+    **Complete Human Intervention Task**
     
-    The result should contain cookies, tokens, or other session data
-    obtained from manual intervention.
+    Provide solution for a human queue task.
+    
+    **Result Format:**
+    - For CAPTCHA: `{"captcha_solution": "answer"}`
+    - For Login: `{"cookies": {...}, "session_token": "..."}`
+    - For 2FA: `{"verification_code": "123456"}`
+    
+    **Example:**
+    ```
+    POST /api/v1/human-queue/abc123/complete
+    Body: {"captcha_solution": "XJKL8P"}
+    ```
     """
     from app.strategies.advanced_bypass import human_queue
     
@@ -573,15 +866,38 @@ async def complete_human_task(task_id: str, result: dict):
     }
 
 
-@app.get("/api/v1/browser-profiles", tags=["Advanced"])
+@app.get(
+    "/api/v1/browser-profiles",
+    tags=["Scraping"],
+    summary="List browser profiles",
+    response_description="List of persistent browser profiles"
+)
 async def list_browser_profiles():
     """
-    List all browser profiles.
+    **Browser Profile Manager**
     
-    Profiles maintain persistent sessions with:
+    List all persistent browser profiles.
+    
+    **Profiles Maintain:**
     - Cookies across sessions
     - Consistent fingerprints
     - Site visit history
+    - LocalStorage/SessionStorage data
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "profiles": [
+            {
+                "name": "default",
+                "fingerprint": {...},
+                "created_at": "2024-01-10T08:00:00Z"
+            }
+        ],
+        "total": 1
+    }
+    ```
     """
     from app.strategies.browser_profiles import profile_manager
     
@@ -592,10 +908,27 @@ async def list_browser_profiles():
     }
 
 
-@app.post("/api/v1/browser-profiles/create", tags=["Advanced"])
+@app.post(
+    "/api/v1/browser-profiles/create",
+    tags=["Scraping"],
+    summary="Create new browser profile",
+    response_description="Created profile details"
+)
 async def create_browser_profile(name: str = None):
     """
-    Create a new browser profile with unique fingerprint.
+    **Create New Browser Profile**
+    
+    Generate a new browser profile with unique fingerprint.
+    
+    **Use Cases:**
+    - Multiple identities for different sites
+    - Avoiding detection through profile rotation
+    - Persistent sessions across scraping runs
+    
+    **Example:**
+    ```
+    POST /api/v1/browser-profiles/create?name=amazon_scraper
+    ```
     """
     from app.strategies.browser_profiles import profile_manager
     
@@ -610,10 +943,17 @@ async def create_browser_profile(name: str = None):
     }
 
 
-@app.get("/api/v1/captcha-stats", tags=["Advanced"])
+@app.get(
+    "/api/v1/captcha-stats",
+    tags=["System"],
+    summary="CAPTCHA solving statistics",
+    response_description="CAPTCHA solver stats"
+)
 async def get_captcha_stats():
     """
-    Get CAPTCHA solving statistics.
+    **CAPTCHA Solving Statistics**
+    
+    Get statistics on CAPTCHA encounters and solving success.
     """
     from app.strategies.advanced_bypass import captcha_solver
     
@@ -623,10 +963,17 @@ async def get_captcha_stats():
     }
 
 
-@app.get("/api/v1/proxy-stats", tags=["Advanced"])
+@app.get(
+    "/api/v1/proxy-stats",
+    tags=["System"],
+    summary="Proxy intelligence statistics",
+    response_description="Proxy usage stats"
+)
 async def get_proxy_stats():
     """
-    Get proxy intelligence statistics.
+    **Proxy Intelligence Statistics**
+    
+    Get proxy rotation and intelligence statistics.
     """
     from app.strategies.advanced_bypass import proxy_intelligence
     
@@ -878,7 +1225,13 @@ async def get_recent_logs(limit: int = 100, level: str = None):
         "logs": logs[-limit:]
     }
 
-@app.post("/api/v1/smart_scrape", response_model=TaskResponse, tags=["Core"])
+@app.post(
+    "/api/v1/smart_scrape",
+    response_model=TaskResponse,
+    tags=["Scraping"],
+    summary="Intelligent research scraper",
+    response_description="Background task started"
+)
 @limiter.limit("5/minute")
 async def smart_scrape(
     request: Request,
@@ -886,6 +1239,44 @@ async def smart_scrape(
     background_tasks: BackgroundTasks,
     service: OrchestratorService = Depends(get_orchestrator)
 ):
+    """
+    **Intelligent Research Scraper**
+    
+    Smart scraping with research capabilities. Combines web search, URL scraping,
+    and AI analysis to answer complex research questions.
+    
+    **Features:**
+    - Automatic web search if URLs not provided
+    - Multi-strategy scraping (lightweight → stealth → ultra-stealth)
+    - AI-powered data extraction and analysis
+    - Support for multiple output formats
+    
+    **Request Body:**
+    ```json
+    {
+        "query": "What are the top JavaScript frameworks in 2024?",
+        "urls": [],  // Optional: provide specific URLs or let it search
+        "output_format": "json",  // json | markdown | csv
+        "use_local_llm": false  // Use Ollama instead of Gemini/Groq
+    }
+    ```
+    
+    **Response:**
+    ```json
+    {
+        "task_id": "abc-123-def",
+        "status": "processing",
+        "message": "Research task started in background"
+    }
+    ```
+    
+    **Poll Status:**
+    ```
+    GET /api/v1/tasks/{task_id}
+    ```
+    
+    **Rate Limit:** 5 requests per minute
+    """
     request_id = str(uuid.uuid4())
     logger.info(f"Queuing Request {request_id} from {request.client.host}: {scrape_req.query}")
     
@@ -897,13 +1288,57 @@ async def smart_scrape(
         message="Research task started in background"
     )
 
-@app.get("/api/v1/tasks/{task_id}", tags=["Core"])
+@app.get(
+    "/api/v1/tasks/{task_id}",
+    tags=["Status"],
+    summary="Get task status",
+    response_description="Task status and results"
+)
 @limiter.limit("60/minute")
 async def get_task_status(
     request: Request,
     task_id: str
 ):
-    """Poll this endpoint to get task status and final results"""
+    """
+    **Poll Task Status**
+    
+    Check the status and retrieve results of a background task.
+    
+    **Task States:**
+    - `processing`: Task is running
+    - `completed`: Task finished successfully
+    - `failed`: Task encountered an error
+    
+    **Example:**
+    ```
+    GET /api/v1/tasks/abc-123-def
+    ```
+    
+    **Response (Processing):**
+    ```json
+    {
+        "task_id": "abc-123-def",
+        "status": "processing",
+        "progress": 45,
+        "message": "Scraping 2 of 5 URLs..."
+    }
+    ```
+    
+    **Response (Completed):**
+    ```json
+    {
+        "task_id": "abc-123-def",
+        "status": "completed",
+        "result": {
+            "answer": "...",
+            "sources": [...],
+            "export_url": "/exports/abc-123-def.json"
+        }
+    }
+    ```
+    
+    **Rate Limit:** 60 requests per minute
+    """
     session_file = os.path.join(SESSION_DIR, f"{task_id}.json")
     
     if not os.path.exists(session_file):
@@ -919,7 +1354,13 @@ async def get_task_status(
 
 # --- Specialized Endpoints for Different Modes ---
 
-@app.post("/api/chat", response_model=TaskResponse, tags=["Chat Mode"])
+@app.post(
+    "/api/chat",
+    response_model=TaskResponse,
+    tags=["Chat Mode"],
+    summary="Intelligent chat interface",
+    response_description="Task started in background"
+)
 @limiter.limit("5/minute")
 async def chat_mode(
     request: Request,
@@ -927,29 +1368,83 @@ async def chat_mode(
     background_tasks: BackgroundTasks,
     service: OrchestratorService = Depends(get_orchestrator)
 ):
-    """Chat mode: Natural language processing with automatic URL extraction"""
+    """
+    **Intelligent Natural Language Chat Interface**
+    
+    Uses the Unified Agent to intelligently process your message. Automatically determines
+    whether to scrape URLs, do research, or answer questions directly.
+    
+    **How It Works:**
+    - **URL Scraping**: Only scrapes when you explicitly request it with keywords like:
+      - "scrape https://example.com"
+      - "extract data from https://example.com"
+      - "analyze these sites: https://..."
+      - "get data from https://..."
+      
+    - **Research Mode**: For questions that mention URLs without scraping intent:
+      - "What is the latest on example.com?" → Research, don't scrape
+      - "Tell me about example.com features" → Research, don't scrape
+      
+    - **Direct Questions**: For general questions without URLs:
+      - "What is Python?" → Direct answer
+      - "How does photosynthesis work?" → Research if needed
+    
+    **Example Messages:**
+    ```
+    # Scraping (explicit):
+    "scrape https://news.ycombinator.com and summarize top stories"
+    
+    # Research (implicit):
+    "what are the top stories on hackernews today?"
+    
+    # Question:
+    "compare python vs javascript"
+    ```
+    
+    **Rate Limit:** 5 requests per minute
+    """
     request_id = str(uuid.uuid4())
     logger.info(f"Chat Request {request_id} from {request.client.host}: {chat_req.message[:100]}...")
 
-    # Parse URLs from the message
+    # Check if user explicitly wants to scrape/extract
     import re
-    urls = re.findall(r'https?://[^\s,]+', chat_req.message)
-    query = re.sub(r'https?://[^\s,]+', '', chat_req.message).strip()
-
-    # Create SmartScrapeRequest from chat input
+    scrape_keywords = ['scrape', 'extract', 'get data from', 'analyze these sites', 'pull from']
+    wants_scraping = any(keyword in chat_req.message.lower() for keyword in scrape_keywords)
+    
+    # Only extract and scrape URLs if user explicitly wants scraping
+    if wants_scraping:
+        urls = re.findall(r'https?://[^\s,]+', chat_req.message)
+        query = re.sub(r'https?://[^\s,]+', '', chat_req.message).strip()
+        
+        if urls:
+            # User wants to scrape specific URLs
+            scrape_req = SmartScrapeRequest(
+                query=query or "Analyze the provided URLs",
+                urls=urls,
+                output_format=chat_req.output_format,
+                use_local_llm=chat_req.use_local_llm
+            )
+            background_tasks.add_task(service.run_smart_scrape, request_id, scrape_req)
+            return TaskResponse(
+                task_id=request_id,
+                status="processing",
+                message=f"Scraping {len(urls)} URL(s) and analyzing content"
+            )
+    
+    # Otherwise, treat as research question (don't scrape mentioned URLs)
     scrape_req = SmartScrapeRequest(
-        query=query or "Analyze the provided URLs",
-        urls=urls,
+        query=chat_req.message,
+        urls=[],  # No URLs to scrape - just research
         output_format=chat_req.output_format,
         use_local_llm=chat_req.use_local_llm
     )
-
+    
     background_tasks.add_task(service.run_smart_scrape, request_id, scrape_req)
-
+    
     return TaskResponse(
         task_id=request_id,
         status="processing",
-        message="Chat analysis started - extracting URLs and processing query"
+        message="Researching your question (URLs mentioned but not scraped)"
     )
 
 @app.post("/api/search", response_model=TaskResponse, tags=["Search Mode"])
