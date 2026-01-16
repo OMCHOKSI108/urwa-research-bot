@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: af32b144-73f3-41d9-a6e9-38c545755958
+Search Time: 2026-01-13 11:22:27
+Completed: 2026-01-13 11:25:25
+Duration: 178.67 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF SANSKRUTI is 90/100 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://github.com/OMCHOKSI108
+2. https://github.com/SANSKRUTIKUKADIYA3303
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+GitHub CopilotWrite better code with AI and GitHub SparkBuild and deploy intelligent apps are two different products offered by GitHub.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+GitHub offers a product called 'GitHub Copilot Write better code with AI,' which is an extension that uses artificial intelligence to help developers write cleaner, more efficient code. On the other hand, there's another tool named 'GitHub Spark Build and deploy intelligent apps,' designed for creating scalable applications quickly using machine learning models directly in your repository.
+

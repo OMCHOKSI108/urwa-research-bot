@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 881199e2-a77a-4198-a153-f38cb6c187ac
+Search Time: 2026-01-09 16:15:38
+Completed: 2026-01-09 16:20:36
+Duration: 298.02 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Identify top 3 competitors to Tesla's Optimus robot with technical specs
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://blog.robozaps.com/b/tesla-optimus-alternatives-competitors
+2. https://botinfo.ai/articles/tesla-optimus
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The top three competitors to Tesla's Optimus robot are Noetix Bumi Humanoid Robot, AgiBot, and Xpeng.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+Noetix Bumi is a humanoid robot that has been developed with similar goals as the Tesla Optimus in terms of human-like movement capabilities. It boasts an advanced bipedal design which allows it to navigate various terrains and perform complex tasks, making it one of the leading competitors for industrial applications where such features are crucial. AgiBot is another humanoid robot that focuses on service industries with its ability to interact socially while performing physical tasks like lifting objects or serving food in restaurants; however, Tesla's Optimus has a more advanced navigation system and broader application scope including construction sites where such social interaction capabilities are less critical. Xpeng is primarily known for their electric vehicles but also ventures into robotics with the AI-driven 'XPenguin', which while not as technologically sophsisticated in terms of human mimicry, offers competitive speed and efficiency that could appeal to sectors where Tesla's Optimus might be less suited. All three companies are actively developing their robots with the aim of improving automation across various industries.
+

@@ -1,0 +1,169 @@
+Autonomous Web Scraper - Backend API List
+Generated from backend/app/main.py
+
+==============================================================================
+STATUS & SYSTEM
+==============================================================================
+GET  /
+     Status check - Returns "URWA Brain Online" and version.
+
+GET  /health
+     Health check - Returns {"status": "healthy"}.
+
+GET  /api/v1/system/metrics
+     Get system metrics (Prometheus-compatible JSON).
+
+GET  /api/v1/system/metrics/prometheus
+     Export metrics in Prometheus format (text/plain).
+
+GET  /api/v1/system/circuits
+     Get circuit breaker status for all domains/services.
+
+GET  /api/v1/system/health
+     Comprehensive system health check (CPU, Playwright, Connectivity, etc.).
+
+GET  /api/v1/system/logs
+     Get recent system logs. (Note: Defined twice in code)
+
+GET  /api/v1/system/cost
+     Get resource usage and cost tracking (LLM tokens, Browser time, etc.).
+
+POST /api/v1/system/cost/limits
+     Set resource usage limits (tokens/hr, cost/hr, etc.).
+
+GET  /api/v1/system/extractors
+     List all versioned extractors.
+
+POST /api/v1/system/extractors/rollback
+     Rollback an extractor to a previous version.
+
+==============================================================================
+AI AGENT & RESEARCH
+==============================================================================
+POST /api/v1/agent
+     UNIFIED AI AGENT - One endpoint for research, scraping, fact-checking, etc.
+     Accepts natural language input.
+
+GET  /api/v1/agent/history
+     Get AI agent conversation history.
+
+POST /api/v1/agent/clear
+     Clear AI agent conversation history.
+
+POST /api/v1/research
+     Perplexity-style AI Research Chat.
+     Searches web and answers questions with citations.
+
+GET  /api/v1/research/history
+     Get conversation history from research chat.
+
+POST /api/v1/research/clear
+     Clear research chat history.
+
+==============================================================================
+SCRAPING & STRATEGY
+==============================================================================
+GET  /api/v1/scraper-stats
+     Get scraping strategy statistics (success rates for lightweight/playwright/stealth).
+
+POST /api/v1/scraper-cache/clear
+     Clear the scraper cache and reset statistics.
+
+GET  /api/v1/strategy/profile-site
+     Profile a website to detect protection level (Cloudflare, CAPTCHA, etc.).
+
+GET  /api/v1/strategy/compliance-check
+     Check if a URL can be scraped compliantly (robots.txt, TOS).
+
+GET  /api/v1/strategy/stats
+     Get comprehensive statistics from the strategy engine.
+
+GET  /api/v1/strategy/learning
+     Get domain-specific learning data (which strategies work best).
+
+POST /api/v1/strategy/clear
+     Clear all strategy data (caches, learning, evidence).
+
+POST /api/v1/protected-scrape
+     Scrape protected sites using site-specific strategies (LinkedIn, Amazon, etc.).
+
+==============================================================================
+ADVANCED BYPASS & INFRASTRUCTURE
+==============================================================================
+GET  /api/v1/human-queue
+     Get pending tasks requiring human intervention (CAPTCHA, Login).
+
+POST /api/v1/human-queue/{task_id}/complete
+     Complete a human queue task with solution tokens/cookies.
+
+GET  /api/v1/browser-profiles
+     List all persistent browser profiles.
+
+POST /api/v1/browser-profiles/create
+     Create a new browser profile with unique fingerprint.
+
+GET  /api/v1/captcha-stats
+     Get CAPTCHA solving statistics.
+
+GET  /api/v1/proxy-stats
+     Get proxy intelligence statistics.
+
+==============================================================================
+DATA PROCESSING
+==============================================================================
+POST /api/v1/normalize
+     Normalize raw data (price, date, location, etc.) to structured format.
+
+==============================================================================
+CORE WORKFLOWS (ASYNC TASKS)
+==============================================================================
+POST /api/v1/smart_scrape
+     Core smart scrape entry point. Returns task_id.
+
+GET  /api/v1/tasks/{task_id}
+     Poll task status and retrieve final results.
+
+POST /api/chat
+     Chat mode: NLP with automatic URL extraction.
+
+POST /api/search
+     Search mode: Traditional web search with AI analysis.
+
+POST /api/analyze-urls
+     URL Analysis mode: Direct analysis of specified URLs.
+
+POST /api/v1/websearch
+     Comprehensive 11-step Web Search workflow.
+
+POST /api/v1/targeted-scrape
+     Targeted 9-step Scraping workflow for specific URLs.
+
+POST /api/v1/custom-scrape
+     Advanced Custom Web Scrape (Prompt-Driven).
+
+POST /api/v1/source-intelligence
+     Evaluate source credibility, bias, and freshness.
+
+POST /api/v1/fact-check
+     Verify claims by searching multiple sources.
+
+POST /api/v1/knowledge/add
+     Add a new entry to the knowledge base.
+
+POST /api/v1/knowledge/search
+     Search the knowledge base.
+
+POST /api/v1/planner
+     Create and optionally execute research plans.
+
+==============================================================================
+MONITORING
+==============================================================================
+POST /api/v1/monitor/add
+     Add a URL to watch for changes (content, price, keywords).
+
+GET  /api/v1/monitor/list
+     List all monitored URLs and recent alerts.
+
+GET  /api/v1/monitor/{monitor_id}/check
+     Check a specific monitor for changes immediately.

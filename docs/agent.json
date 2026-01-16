@@ -1,0 +1,98 @@
+{
+  "project_metadata": {
+    "project_name": "URWA-Universal-Research-Web-Agent",
+    "version": "1.0.0",
+    "type": "Monorepo (Cloud DevOps)",
+    "stack": [
+      "Python 3.11",
+      "FastAPI",
+      "Playwright",
+      "Docker",
+      "Nginx",
+      "Google Gemini Flash",
+      "Groq"
+    ]
+  },
+  "agent_instructions": {
+    "goal": "Scaffold a complete research-grade web scraping infrastructure with separate backend and frontend containers.",
+    "execution_order": [
+      "Create Directory Structure",
+      "Generate Backend Configuration",
+      "Generate Frontend Configuration",
+      "Generate Orchestration Files"
+    ]
+  },
+  "file_system_blueprint": [
+    {
+      "path": "backend/Dockerfile",
+      "description": "Docker image for Python + Playwright support",
+      "content_instruction": "Use 'mcr.microsoft.com/playwright/python:v1.41.0-jammy' as base. Set workdir to /app. Copy requirements.txt, pip install, install 'chromium' browser via playwright. Expose port 8000. Command: uvicorn app.main:app --host 0.0.0.0 --reload."
+    },
+    {
+      "path": "backend/requirements.txt",
+      "description": "Python dependencies",
+      "content_spec": [
+        "fastapi>=0.109.0",
+        "uvicorn[standard]>=0.27.0",
+        "playwright>=1.41.0",
+        "beautifulsoup4>=4.12.0",
+        "html2text>=2020.1.16",
+        "pydantic>=2.6.0",
+        "python-dotenv>=1.0.0",
+        "google-generativeai",
+        "groq",
+        "requests",
+        "loguru"
+      ]
+    },
+    {
+      "path": "backend/app/main.py",
+      "description": "FastAPI Entry Point",
+      "content_instruction": "Create a FastAPI app instance. Add CORS middleware allowing '*'. Create a root endpoint '/' returning {'status': 'URWA Brain Online'}. Create a dummy endpoint POST '/api/v1/scrape' that accepts a URL string."
+    },
+    {
+      "path": "backend/app/agents/scraper.py",
+      "description": "Stealth Scraping Module",
+      "content_instruction": "Import Playwright's async_playwright. Define a class 'StealthScraper'. Method 'scrape(url)' should launch a chromium browser (headless=True), create a context with a fake User-Agent, goto the URL, and return page.content()."
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "description": "Lightweight Nginx server",
+      "content_instruction": "From nginx:alpine. Copy ./html to /usr/share/nginx/html. Copy nginx.conf to /etc/nginx/conf.d/default.conf."
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "description": "Nginx Reverse Proxy Config",
+      "content_instruction": "Server block listening on 80. Location / points to root /usr/share/nginx/html. Location /api/ proxies pass to http://backend:8000."
+    },
+    {
+      "path": "frontend/html/index.html",
+      "description": "Main Dashboard UI",
+      "content_instruction": "HTML5 Boilerplate. Title: 'URWA Control Deck'. Include a centered Input Box for URL and a 'Launch Agent' button. Add a <div id='logs'> for displaying output."
+    },
+    {
+      "path": "docker-compose.yml",
+      "description": "Orchestration",
+      "content_instruction": "Version 3.8. Service 'backend': build ./backend, ports 8000:8000, env_file .env, ipc: host. Service 'frontend': build ./frontend, ports 80:80, depends_on backend."
+    },
+    {
+      "path": ".env",
+      "description": "Secrets",
+      "content_instruction": "GEMINI_API_KEY=\nGROQ_API_KEY=\nENV=dev"
+    },
+    {
+      "path": ".gitignore",
+      "description": "Git Ignore",
+      "content_instruction": "__pycache__/\n.env\n.DS_Store\nvenv/"
+    }
+  ],
+  "directories_to_create": [
+    "backend/app/core",
+    "backend/app/agents",
+    "backend/app/models",
+    "backend/app/utils",
+    "frontend/html",
+    "frontend/css",
+    "frontend/js"
+  ]
+}

@@ -1,0 +1,294 @@
+================================================================================
+                    URWA BRAIN - PROJECT INFORMATION
+                Production-Grade Web Intelligence Platform
+                            Version 3.0.0
+================================================================================
+
+PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+URWA Brain (Universal Research Web Agent) is a production-grade AI-powered 
+web intelligence platform. It combines intelligent web scraping, real-time 
+research, and AI analysis into a single unified system.
+
+MAIN FEATURE: Unified AI Agent - One endpoint that understands natural 
+language and automatically decides what tools to use.
+
+TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+- Framework:      FastAPI (Python)
+- Scraping:       Playwright, aiohttp, BeautifulSoup
+- LLM:            Groq API, Google Gemini, Ollama (local)
+- Search:         DuckDuckGo (text + news)
+- Monitoring:     Prometheus-compatible metrics
+- Logging:        Structured JSON (Loguru)
+
+================================================================================
+                         PRIMARY ENDPOINT
+================================================================================
+
+POST /api/v1/agent
+------------------
+UNIFIED AI AGENT - Just talk to it naturally. It understands your intent 
+and automatically decides what tools to use.
+
+Examples:
+  - "What is bitcoin market impact on India?"         -> Research & Analysis
+  - "Extract stories from https://news.ycombinator.com" -> Web Scraping
+  - "Is it true Python is most popular?"              -> Fact Checking
+  - "Can I scrape linkedin.com?"                      -> Site Profiling
+  - "Compare Python vs JavaScript"                    -> Comparative Research
+
+Response:
+{
+  "intent": "research",
+  "action_taken": "Searched the web and analyzed multiple sources",
+  "result": {
+    "answer": "## Executive Summary\n...",
+    "sources": [...],
+    "confidence": 0.85
+  },
+  "follow_up_suggestions": [...]
+}
+
+================================================================================
+                           COMPLETE API LIST
+================================================================================
+
+AI AGENT (3 endpoints) - MAIN FEATURE
+--------------------------------------------------------------------------------
+POST /api/v1/agent               Unified AI agent (handles everything)
+GET  /api/v1/agent/history       Get conversation history
+POST /api/v1/agent/clear         Clear conversation history
+
+RESEARCH CHAT (3 endpoints)
+--------------------------------------------------------------------------------
+POST /api/v1/research            Perplexity-style research with analysis
+GET  /api/v1/research/history    Get research history
+POST /api/v1/research/clear      Clear research history
+
+HEALTH & STATUS (3 endpoints)
+--------------------------------------------------------------------------------
+GET  /                           API status check
+GET  /health                     Quick health check
+GET  /api/v1/tasks/{task_id}     Poll task status and get results
+
+CORE SCRAPING APIs (7 endpoints)
+--------------------------------------------------------------------------------
+POST /api/v1/smart_scrape        AI-powered web research with query
+POST /api/chat                   Natural language chat interface
+POST /api/search                 Web search with analysis
+POST /api/analyze-urls           Analyze specific URLs
+POST /api/v1/websearch           11-step comprehensive web search
+POST /api/v1/targeted-scrape     9-step targeted URL scraping
+POST /api/v1/custom-scrape       Prompt-driven custom extraction
+
+STRATEGY ENGINE APIs (5 endpoints)
+--------------------------------------------------------------------------------
+GET  /api/v1/strategy/profile-site    Detect site protection level
+GET  /api/v1/strategy/compliance-check Check robots.txt and ToS
+GET  /api/v1/strategy/stats           Get all strategy statistics
+GET  /api/v1/strategy/learning        Get domain learning data
+POST /api/v1/strategy/clear           Clear all strategy data
+
+ADVANCED BYPASS APIs (7 endpoints)
+--------------------------------------------------------------------------------
+POST /api/v1/protected-scrape         Site-specific protected scraping
+GET  /api/v1/human-queue              Get pending human tasks
+POST /api/v1/human-queue/{id}/complete Complete human task
+GET  /api/v1/browser-profiles         List browser profiles
+POST /api/v1/browser-profiles/create  Create new profile
+GET  /api/v1/captcha-stats            CAPTCHA solving statistics
+GET  /api/v1/proxy-stats              Proxy intelligence statistics
+
+SYSTEM/PRODUCTION APIs (10 endpoints)
+--------------------------------------------------------------------------------
+GET  /api/v1/system/metrics           Prometheus-compatible metrics
+GET  /api/v1/system/metrics/prometheus Prometheus format export
+GET  /api/v1/system/circuits          Circuit breaker status
+GET  /api/v1/system/health            Comprehensive health check
+GET  /api/v1/system/cost              Resource usage and costs
+POST /api/v1/system/cost/limits       Set usage limits
+GET  /api/v1/system/extractors        List versioned extractors
+POST /api/v1/system/extractors/rollback Rollback extractor version
+GET  /api/v1/system/logs              Get structured logs
+POST /api/v1/normalize                Normalize data (price, date, etc.)
+
+INTELLIGENCE APIs (5 endpoints)
+--------------------------------------------------------------------------------
+POST /api/v1/fact-check               Verify claims against sources
+POST /api/v1/source-intelligence      Evaluate source credibility
+POST /api/v1/knowledge/add            Add to knowledge base
+POST /api/v1/knowledge/search         Search knowledge base
+POST /api/v1/planner                  Create research plans
+
+================================================================================
+                           TOTAL: 50+ API ENDPOINTS
+================================================================================
+
+KEY FEATURES
+--------------------------------------------------------------------------------
+
+1. UNIFIED AI AGENT
+   - One endpoint handles all requests
+   - Natural language understanding
+   - Automatic intent classification
+   - Tool selection and execution
+   - Comprehensive response with citations
+
+2. PERPLEXITY-STYLE RESEARCH
+   - Web search + news search
+   - Multi-source scraping
+   - Professional analyst-grade analysis
+   - Executive summaries
+   - Trend analysis and predictions
+   - Actionable insights
+
+3. INTELLIGENT SCRAPING
+   - Multi-strategy scraper (Lightweight, Stealth, Ultra Stealth)
+   - Automatic strategy selection based on site protection
+   - Adaptive learning from successes and failures
+
+4. PROTECTED SITE HANDLING
+   - Site-specific scrapers (LinkedIn, Amazon, Indeed, Twitter, Instagram)
+   - CAPTCHA solving integration (2Captcha, Anti-Captcha)
+   - Browser profile persistence for session management
+   - Human-in-the-loop queue for manual intervention
+
+5. PRODUCTION INFRASTRUCTURE
+   - Circuit breakers to prevent cascading failures
+   - Prometheus-compatible metrics for monitoring
+   - Health checks with self-healing capabilities
+   - Cost control with usage limits
+
+6. DATA QUALITY
+   - Automatic data normalization (prices, dates, locations)
+   - Versioned extractors with rollback support
+   - Confidence scoring on all outputs
+   - Semantic fallback extraction
+
+================================================================================
+                           PROJECT STRUCTURE
+================================================================================
+
+urwa-brain/
+├── backend/
+│   ├── app/
+│   │   ├── core/                   # Production infrastructure
+│   │   │   ├── production_infra.py # Metrics, circuits, health
+│   │   │   └── data_quality.py     # Normalization, extractors
+│   │   │
+│   │   ├── services/               # Business logic
+│   │   │   ├── orchestrator.py     # Main orchestration
+│   │   │   ├── research_chat.py    # Perplexity-style chat
+│   │   │   └── unified_agent.py    # Unified AI agent
+│   │   │
+│   │   ├── strategies/             # Scraping strategies
+│   │   │   ├── site_profiler.py    # Protection detection
+│   │   │   ├── adaptive_learning.py
+│   │   │   ├── intelligent_retry.py
+│   │   │   ├── rate_control.py
+│   │   │   ├── evidence_capture.py
+│   │   │   ├── semantic_extractor.py
+│   │   │   ├── compliance.py
+│   │   │   ├── stealth_techniques.py
+│   │   │   ├── advanced_bypass.py
+│   │   │   ├── site_specific.py
+│   │   │   └── browser_profiles.py
+│   │   │
+│   │   ├── agents/                 # Scraper implementations
+│   │   │   ├── hybrid_scraper.py   # Main orchestrator
+│   │   │   ├── scraper.py          # Playwright stealth
+│   │   │   └── ultra_stealth_scraper.py
+│   │   │
+│   │   └── main.py                 # FastAPI application
+│   │
+│   ├── requirements.txt
+│   └── run.py
+│
+├── docs/                           # MkDocs documentation
+│   ├── index.md
+│   ├── getting-started/
+│   ├── api/
+│   ├── architecture/
+│   └── guides/
+│
+├── postman_collection.json         # Postman API collection
+├── PROJECT_INFO.txt                # This file
+└── mkdocs.yml
+
+================================================================================
+                           ENVIRONMENT VARIABLES
+================================================================================
+
+# LLM Configuration (Required)
+GROQ_API_KEY=gsk_xxxxxxxxxxxx
+GOOGLE_API_KEY=AIzaxxxxxxxxxxxx
+
+# CAPTCHA Solving (Optional)
+CAPTCHA_API_KEY=your_2captcha_key
+CAPTCHA_SERVICE=2captcha
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+
+================================================================================
+                           QUICK START
+================================================================================
+
+# 1. Install dependencies
+cd backend
+pip install -r requirements.txt
+playwright install chromium
+
+# 2. Set environment variables
+set GROQ_API_KEY=your_groq_api_key
+
+# 3. Run server
+python run.py
+
+# 4. Test the AI Agent (main feature)
+curl -X POST "http://localhost:8000/api/v1/agent?input=What is bitcoin market today"
+
+# 5. Test Perplexity-style research
+curl -X POST "http://localhost:8000/api/v1/research?query=AI trends 2024&deep=true"
+
+# 6. Check health
+curl http://localhost:8000/health
+
+================================================================================
+                           API DOCUMENTATION
+================================================================================
+
+Interactive Docs:    http://localhost:8000/docs
+ReDoc:               http://localhost:8000/redoc
+Postman Collection:  postman_collection.json
+
+================================================================================
+                           EXAMPLE USAGE
+================================================================================
+
+# AI Agent - Research
+POST /api/v1/agent?input=What are the current bitcoin market conditions
+
+# AI Agent - Scrape
+POST /api/v1/agent?input=Extract headlines from https://cnn.com
+
+# AI Agent - Fact Check
+POST /api/v1/agent?input=Is it true that Python is most popular in 2024
+
+# AI Agent - Site Analysis
+POST /api/v1/agent?input=Can I scrape amazon.com? What protection does it have?
+
+# Deep Research
+POST /api/v1/research?query=impact of AI on healthcare&deep=true
+
+# Custom Scrape
+POST /api/v1/custom-scrape
+Body: {"url": "https://news.ycombinator.com", "instruction": "Extract top 10 stories"}
+
+================================================================================
+                     URWA BRAIN - Version 3.0.0
+           Production-Grade AI Web Intelligence Platform
+                   "One Endpoint to Rule Them All"
+================================================================================

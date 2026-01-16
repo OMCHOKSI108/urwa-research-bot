@@ -1,0 +1,46 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 8c518d1d-d76d-4214-979f-cfc59cbf14dd
+Search Time: 2026-01-08 22:14:30
+Completed: 2026-01-08 22:15:43
+Duration: 72.39 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+List all companies on this page  
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.ambitionbox.com/list-of-companies
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+No companies were found on the provided page.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+Upon reviewing the content of the specified webpage, it appears that there are currently no listed entities representing individual or corporate businesses. This could be due to a variety of reasons such as recent changes in company listings not yet updated online, incorrect URL input leading to an empty page, or simply because this particular website does not host information about companies.
+
+--------------------------------------------------------------------------------
+METADATA
+--------------------------------------------------------------------------------
+total_sources: 1
+total_entities: 0
+total_links: 0
+processing_time_sources: 1
+deep_scraped_pages: 0
+total_pages_analyzed: 1
+
+================================================================================
+LLM Provider: local-ollama
+Confidence: high
+================================================================================

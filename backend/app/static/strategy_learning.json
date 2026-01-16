@@ -1,0 +1,22 @@
+{
+  "github.com": {
+    "ultra_stealth": {
+      "attempts": 1,
+      "successes": 1,
+      "failures": 0,
+      "avg_duration": 8.974333047866821,
+      "last_success": "2026-01-13T11:04:04.820771",
+      "last_failure": null,
+      "success_rate": 1.0
+    },
+    "stealth": {
+      "attempts": 29,
+      "successes": 29,
+      "failures": 0,
+      "avg_duration": 1.7152464883080845,
+      "last_success": "2026-01-13T11:21:40.679871",
+      "last_failure": null,
+      "success_rate": 1.0
+    }
+  }
+}

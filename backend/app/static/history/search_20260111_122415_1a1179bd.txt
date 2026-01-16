@@ -1,0 +1,32 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 1a1179bd-f757-49eb-8828-3972e180e018
+Search Time: 2026-01-11 12:24:15
+Completed: 2026-01-11 12:24:33
+Duration: 17.21 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+What are the latest trends Gloabl and indian Stock market
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.jpmorgan.com/insights/global-research/markets/india-stock-market-outlook
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The latest trends in global and Indian stock markets include a cautious optimism due to economic recovery prospects, with technology sectors showing resilience.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+Recent research indicates that the global market is experiencing fluctuations as investors react to ongoing geopolitical tensions and inflation concerns. In India, there has been a notable shift towards renewable energy stocks amid government incentives and growing environmental awareness among consumers.
+

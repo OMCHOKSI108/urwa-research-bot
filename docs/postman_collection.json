@@ -1,0 +1,793 @@
+{
+    "info": {
+        "_postman_id": "urwa-brain-api-v3",
+        "name": "URWA Brain API Collection",
+        "description": "Universal Research Web Agent - Production-Grade Web Intelligence Platform\n\nVersion: 3.0.0\n\nFeatures:\n- AI-Powered Research Chat (Perplexity-style)\n- Intelligent Web Scraping\n- Protected Site Bypass\n- Production Infrastructure",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "AI AGENT (One Endpoint)",
+            "description": "UNIFIED AI AGENT - Just talk to it naturally. It understands your intent and decides what to do.",
+            "item": [
+                {
+                    "name": "Research: Bitcoin Market",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=What are the current bitcoin market conditions and impact on Indian economy?",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "What are the current bitcoin market conditions and impact on Indian economy?"
+                                }
+                            ]
+                        },
+                        "description": "Ask any research question - agent searches web and analyzes"
+                    }
+                },
+                {
+                    "name": "Research: AI Trends",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=Tell me about the latest AI trends in healthcare 2024",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "Tell me about the latest AI trends in healthcare 2024"
+                                }
+                            ]
+                        },
+                        "description": "Research AI trends"
+                    }
+                },
+                {
+                    "name": "Scrape: Hacker News",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=Extract the top stories from https://news.ycombinator.com",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "Extract the top stories from https://news.ycombinator.com"
+                                }
+                            ]
+                        },
+                        "description": "Agent detects URL and scrapes it"
+                    }
+                },
+                {
+                    "name": "Fact Check",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=Is it true that Python is the most popular programming language?",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "Is it true that Python is the most popular programming language?"
+                                }
+                            ]
+                        },
+                        "description": "Agent detects fact-check intent and verifies claim"
+                    }
+                },
+                {
+                    "name": "Site Analysis",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=Can I scrape https://linkedin.com? What protection does it have?",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "Can I scrape https://linkedin.com? What protection does it have?"
+                                }
+                            ]
+                        },
+                        "description": "Agent profiles site and reports protection level"
+                    }
+                },
+                {
+                    "name": "Compare Topics",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/agent?input=Compare Python vs JavaScript for web development in 2024",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "agent"
+                            ],
+                            "query": [
+                                {
+                                    "key": "input",
+                                    "value": "Compare Python vs JavaScript for web development in 2024"
+                                }
+                            ]
+                        },
+                        "description": "Comparative analysis"
+                    }
+                },
+                {
+                    "name": "Get Agent History",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/agent/history",
+                        "description": "View conversation history"
+                    }
+                },
+                {
+                    "name": "Clear Agent History",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/v1/agent/clear",
+                        "description": "Clear conversation history"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Health & Status",
+            "description": "System health and status endpoints",
+            "item": [
+                {
+                    "name": "Root Status",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/",
+                        "description": "Check if API is online"
+                    }
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/health",
+                        "description": "Quick health check"
+                    }
+                },
+                {
+                    "name": "Scraper Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/scraper-stats",
+                        "description": "Get scraping strategy statistics"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Research Chat (Perplexity-style)",
+            "description": "AI-powered research chat that searches the web and provides comprehensive analysis",
+            "item": [
+                {
+                    "name": "Research Query",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/research?query=what is current bitcoin market conditions and impact on indian market",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "research"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "what is current bitcoin market conditions and impact on indian market"
+                                }
+                            ]
+                        },
+                        "description": "Perplexity-style AI research. Takes a question, searches the web, scrapes sources, and returns comprehensive analysis with citations."
+                    }
+                },
+                {
+                    "name": "Deep Research Query",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/research?query=AI trends in healthcare 2024&deep=true",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "research"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "AI trends in healthcare 2024"
+                                },
+                                {
+                                    "key": "deep",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Deep research mode - scrapes more sources and includes news for comprehensive analysis"
+                    }
+                },
+                {
+                    "name": "Get Research History",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/research/history",
+                        "description": "Get conversation history from research chat"
+                    }
+                },
+                {
+                    "name": "Clear Research History",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/v1/research/clear",
+                        "description": "Clear research chat history"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Core Scraping",
+            "description": "Web scraping and search endpoints",
+            "item": [
+                {
+                    "name": "Smart Scrape",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/v1/smart_scrape",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"query\": \"best programming languages for AI development 2024\",\n    \"use_local_llm\": true\n}"
+                        },
+                        "description": "AI-powered web research with query"
+                    }
+                },
+                {
+                    "name": "Custom Scrape",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/v1/custom-scrape",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"url\": \"https://news.ycombinator.com\",\n    \"instruction\": \"Extract the top 10 stories with titles and points\"\n}"
+                        },
+                        "description": "Custom extraction with specific instructions"
+                    }
+                },
+                {
+                    "name": "Get Task Status",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/tasks/YOUR_TASK_ID_HERE",
+                        "description": "Poll for task completion. Replace YOUR_TASK_ID_HERE with actual task_id"
+                    }
+                },
+                {
+                    "name": "Fact Check",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/v1/fact-check",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"claim\": \"Python is the most popular programming language in 2024\",\n    \"deep_check\": true\n}"
+                        },
+                        "description": "Verify claims against multiple sources"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Strategy Engine",
+            "description": "Site profiling and strategy selection",
+            "item": [
+                {
+                    "name": "Profile Site",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/strategy/profile-site?url=https://amazon.com",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "strategy",
+                                "profile-site"
+                            ],
+                            "query": [
+                                {
+                                    "key": "url",
+                                    "value": "https://amazon.com"
+                                }
+                            ]
+                        },
+                        "description": "Detect site protection level before scraping"
+                    }
+                },
+                {
+                    "name": "Compliance Check",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/strategy/compliance-check?url=https://linkedin.com",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "strategy",
+                                "compliance-check"
+                            ],
+                            "query": [
+                                {
+                                    "key": "url",
+                                    "value": "https://linkedin.com"
+                                }
+                            ]
+                        },
+                        "description": "Check robots.txt and ToS compliance"
+                    }
+                },
+                {
+                    "name": "Strategy Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/strategy/stats",
+                        "description": "Get all strategy statistics"
+                    }
+                },
+                {
+                    "name": "Learning Data",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/strategy/learning",
+                        "description": "Get domain learning data"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Advanced Bypass",
+            "description": "Protected site scraping and bypass techniques",
+            "item": [
+                {
+                    "name": "Protected Scrape - LinkedIn",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/protected-scrape?url=https://linkedin.com/in/billgates",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "protected-scrape"
+                            ],
+                            "query": [
+                                {
+                                    "key": "url",
+                                    "value": "https://linkedin.com/in/billgates"
+                                }
+                            ]
+                        },
+                        "description": "Scrape LinkedIn using fallback strategies"
+                    }
+                },
+                {
+                    "name": "Protected Scrape - Amazon",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/protected-scrape?url=https://amazon.com/dp/B0BSHF7WHW",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "protected-scrape"
+                            ],
+                            "query": [
+                                {
+                                    "key": "url",
+                                    "value": "https://amazon.com/dp/B0BSHF7WHW"
+                                }
+                            ]
+                        },
+                        "description": "Scrape Amazon product using site-specific strategies"
+                    }
+                },
+                {
+                    "name": "Get Human Queue",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/human-queue",
+                        "description": "Get tasks requiring human intervention"
+                    }
+                },
+                {
+                    "name": "List Browser Profiles",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/browser-profiles",
+                        "description": "List persistent browser profiles"
+                    }
+                },
+                {
+                    "name": "Create Browser Profile",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/browser-profiles/create?name=my_profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "browser-profiles",
+                                "create"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "my_profile"
+                                }
+                            ]
+                        },
+                        "description": "Create new browser profile with unique fingerprint"
+                    }
+                },
+                {
+                    "name": "CAPTCHA Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/captcha-stats",
+                        "description": "Get CAPTCHA solving statistics"
+                    }
+                },
+                {
+                    "name": "Proxy Stats",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/proxy-stats",
+                        "description": "Get proxy intelligence statistics"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "System & Production",
+            "description": "Production infrastructure endpoints",
+            "item": [
+                {
+                    "name": "System Health",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/health",
+                        "description": "Comprehensive system health check (CPU, memory, disk)"
+                    }
+                },
+                {
+                    "name": "System Metrics",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/metrics",
+                        "description": "Get Prometheus-compatible metrics"
+                    }
+                },
+                {
+                    "name": "Prometheus Metrics",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/metrics/prometheus",
+                        "description": "Export metrics in Prometheus format"
+                    }
+                },
+                {
+                    "name": "Circuit Breakers",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/circuits",
+                        "description": "Get circuit breaker status for all domains"
+                    }
+                },
+                {
+                    "name": "Cost & Usage",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/cost",
+                        "description": "Get resource usage and cost tracking"
+                    }
+                },
+                {
+                    "name": "Set Cost Limits",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/system/cost/limits?limit_name=llm_tokens_per_hour&value=50000",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "system",
+                                "cost",
+                                "limits"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit_name",
+                                    "value": "llm_tokens_per_hour"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "50000"
+                                }
+                            ]
+                        },
+                        "description": "Set resource usage limits"
+                    }
+                },
+                {
+                    "name": "List Extractors",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/v1/system/extractors",
+                        "description": "List all versioned extractors"
+                    }
+                },
+                {
+                    "name": "Get Logs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/system/logs?limit=50",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "system",
+                                "logs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Get recent structured logs"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Data Normalization",
+            "description": "Data quality and normalization",
+            "item": [
+                {
+                    "name": "Normalize Price",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/normalize?data_type=price&value=$1,234.56",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "normalize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "data_type",
+                                    "value": "price"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "$1,234.56"
+                                }
+                            ]
+                        },
+                        "description": "Normalize price to structured format"
+                    }
+                },
+                {
+                    "name": "Normalize Date",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/normalize?data_type=date&value=Jan 15, 2024",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "normalize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "data_type",
+                                    "value": "date"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "Jan 15, 2024"
+                                }
+                            ]
+                        },
+                        "description": "Normalize date to ISO format"
+                    }
+                },
+                {
+                    "name": "Normalize Location",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/normalize?data_type=location&value=New York, NY, USA",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "normalize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "data_type",
+                                    "value": "location"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "New York, NY, USA"
+                                }
+                            ]
+                        },
+                        "description": "Parse location into city, state, country"
+                    }
+                },
+                {
+                    "name": "Normalize Company",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/normalize?data_type=company&value=Google LLC",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "normalize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "data_type",
+                                    "value": "company"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "Google LLC"
+                                }
+                            ]
+                        },
+                        "description": "Clean company name and extract legal suffix"
+                    }
+                },
+                {
+                    "name": "Normalize Rating",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/normalize?data_type=rating&value=4.5 out of 5 stars",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "normalize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "data_type",
+                                    "value": "rating"
+                                },
+                                {
+                                    "key": "value",
+                                    "value": "4.5 out of 5 stars"
+                                }
+                            ]
+                        },
+                        "description": "Normalize rating to structured format"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: f9e914bb-4326-4e4a-8712-2f19cf2ae571
+Search Time: 2026-01-08 23:25:47
+Completed: 2026-01-08 23:28:16
+Duration: 148.75 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+List all companies on this page  
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.ambitionbox.com/list-of-companies?campaign=desktop_nav&page=1
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+No companies were found on the provided webpage.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+The search query for 'List all companies' did not return any entities or data points from the given sources. It is possible that there are no such listings available, or they may be located in a different section of the page which was not included within the extracted content.
+
+--------------------------------------------------------------------------------
+METADATA
+--------------------------------------------------------------------------------
+total_sources: 1
+total_entities: 0
+total_links: 0
+processing_time_sources: 1
+deep_scraped_pages: 0
+total_pages_analyzed: 1
+schema_detected: None
+schema_confidence: None
+
+================================================================================
+LLM Provider: local-ollama
+Confidence: medium
+================================================================================

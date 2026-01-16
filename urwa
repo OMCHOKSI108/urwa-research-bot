@@ -1,0 +1,15 @@
+#!/bin/bash
+# URWA Brain - Command Line Interface (Bash/Git Bash/WSL)
+
+# Get directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Activate venv if exists
+if [ -f "$DIR/venv/Scripts/activate" ]; then
+    source "$DIR/venv/Scripts/activate"
+elif [ -f "$DIR/venv/bin/activate" ]; then
+    source "$DIR/venv/bin/activate"
+fi
+
+# Run CLI
+python "$DIR/terminal/cli.py" "$@"

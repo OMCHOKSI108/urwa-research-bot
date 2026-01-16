@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: ccd6376b-eb08-4473-bcd3-d2d59cfc1512
+Search Time: 2026-01-09 16:23:29
+Completed: 2026-01-09 16:30:42
+Duration: 432.58 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Identify top 3 competitors to Tesla's Optimus robot with technical specs
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://blog.robozaps.com/b/tesla-optimus-alternatives-competitors
+2. https://botinfo.ai/articles/tesla-optimus
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The top three competitors to Tesla's Optimus robot are AgiBot, Unitree G1, and Apptronik Apollo.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+AgiBot is a humanoid robot developed by Agibots that offers similar functionalities as the Tesla Optimus but with its own unique features. The Apptronik Apollo focuses on industrial settings, providing agility and affordability for repetitive tasks in manufacturing environments. Lastly, Unitree G1 is designed to be more cost-effective while still being capable of performing lightweight tasks.
+

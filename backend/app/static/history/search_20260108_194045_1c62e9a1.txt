@@ -1,0 +1,44 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 1c62e9a1-ecb2-4ea7-abcf-e3162061c6d6
+Search Time: 2026-01-08 19:40:45
+Completed: 2026-01-08 19:41:23
+Duration: 38.38 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Trump imposed 500 % Tariff on Indian Goods why ?
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.jforum.fr/pourquoi-ce-chapeau-de-melania-trump.html
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The claim that Trump imposed a 500% tariff on Indian goods is inaccurate.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+There has been no record of President Donald Trump imposing such high tariffs specifically targeted at India. While the U.S.-India trade relationship includes various measures and negotiations, including discussions about potential changes to import duties for certain goods as part of broader strategic partnerships or retaliatory actions in response to other countries' policies, no specific 500% tariff on Indian imports has been officially enacted by the Trump administration.
+
+--------------------------------------------------------------------------------
+METADATA
+--------------------------------------------------------------------------------
+total_sources: 1
+total_entities: 0
+total_links: 0
+processing_time_sources: 1
+
+================================================================================
+LLM Provider: local-ollama
+Confidence: high
+================================================================================

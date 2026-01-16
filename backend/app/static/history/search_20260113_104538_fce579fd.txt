@@ -1,0 +1,32 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: fce579fd-aec6-46ae-9e95-4b30c8bb4f75
+Search Time: 2026-01-13 10:45:38
+Completed: 2026-01-13 10:45:45
+Duration: 6.51 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://github.com/OMCHOKSI108
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Unable to compare GitHub PR files as no entities or data points were found.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+The task requires comparing two pull request (PR) files from a repository on GitHub. However, the provided information does not include any specific details about these PRs such as their content, changes made, contributors involved etc., which are essential for comparison and grading them by 1 endpoints.
+

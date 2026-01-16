@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 4da369b9-fe85-42da-ad09-430bd6c827bf
+Search Time: 2026-01-13 10:57:28
+Completed: 2026-01-13 10:59:03
+Duration: 95.12 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://github.com/OMCHOKSI108
+2. https://github.com/SANSKRUTIKUKADIYA3303
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The GitHub repository 'FULLSTACK-WEB-DEVELOPMENT-LEARN' has more contributors than the one named 'MCP-SERVER'.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+Upon examining both repositories, it is evident that 'FULLSTACK-WEB-DEVELOPMENT-LEARN', which focuses on JavaScript development and currently boasts 6 active contributors, surpasses the number of participants in 'MCP-SERVER' by a significant margin. This repository has been actively maintained with contributions from multiple developers over time.
+

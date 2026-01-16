@@ -1,0 +1,79 @@
+# ================================================================================
+#                 URWA BRAIN - DOCKER COMPOSE
+#        Production-Grade AI Web Intelligence Platform
+# ================================================================================
+
+version: '3.8'
+
+services:
+  # Main URWA Brain API
+  urwa-brain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urwa-brain
+    ports:
+      - "8000:8000"
+    environment:
+      # LLM Configuration (Required)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=${DEBUG:-false}
+
+      # CAPTCHA Solving (Optional)
+      - CAPTCHA_API_KEY=${CAPTCHA_API_KEY:-}
+      - CAPTCHA_SERVICE=${CAPTCHA_SERVICE:-2captcha}
+
+      # Rate Limiting
+      - RATE_LIMIT=${RATE_LIMIT:-10}
+
+      # Cost Controls
+      - LLM_TOKENS_PER_HOUR=${LLM_TOKENS_PER_HOUR:-100000}
+      - BROWSER_MINUTES_PER_HOUR=${BROWSER_MINUTES_PER_HOUR:-60}
+      - MAX_COST_PER_HOUR=${MAX_COST_PER_HOUR:-1.0}
+
+    volumes:
+      # Persist sessions and exports
+      - urwa_sessions:/app/app/static/sessions
+      - urwa_exports:/app/app/static/exports
+      - urwa_evidence:/app/app/static/evidence
+      - urwa_logs:/app/app/static/logs
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+# Persistent volumes
+volumes:
+  urwa_sessions:
+    driver: local
+  urwa_exports:
+    driver: local
+  urwa_evidence:
+    driver: local
+  urwa_logs:
+    driver: local
+
+# Network (optional - for future additions like Redis)
+networks:
+  default:
+    name: urwa-network

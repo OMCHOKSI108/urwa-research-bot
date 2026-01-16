@@ -1,0 +1,90 @@
+# ================================================================================
+#                      URWA BRAIN - DOCKERIGNORE
+#              Production-Grade AI Web Intelligence Platform
+# ================================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Static files that shouldn't be built into image
+backend/app/static/sessions/*
+backend/app/static/exports/*
+backend/app/static/evidence/*
+backend/app/static/logs/*
+backend/app/static/browser_profiles/*
+
+# Keep the directories
+!backend/app/static/sessions/.gitkeep
+!backend/app/static/exports/.gitkeep
+!backend/app/static/evidence/.gitkeep
+!backend/app/static/logs/.gitkeep
+
+# Local development
+*.local
+.env.local
+.env.*.local
+
+# Playwright (downloaded in container)
+playwright-browsers/
+
+# Project files not needed in container
+PROJECT_INFO.txt
+postman_collection.json
+mkdocs.yml
+CHANGELOG.md

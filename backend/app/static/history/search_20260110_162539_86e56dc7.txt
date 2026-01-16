@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 86e56dc7-a1bc-4683-910e-40a147ec7cc8
+Search Time: 2026-01-10 16:25:39
+Completed: 2026-01-10 16:31:00
+Duration: 321.49 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+best programming languages 2025
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.developers.dev/tech-talk/best-programming-languages.html
+2. https://hammanitech.com/blog/programming-languages-in-2025/
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Python and JavaScript are projected to remain dominant in web development, with a strategic preference towards TypeScript.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+As of December 29, 2025, Python continues its stronghold in AI, Machine Learning, and Data Science due to extensive libraries like TensorFlow and PyTorch. In the realm of web development, JavaScript remains prevalent; however, TypeScript is gaining traction for projects requiring static typing benefits over other dynamic languages such as CoffeeScript or Dart.
+

@@ -1,0 +1,32 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 467ca0e8-86da-4bb0-947c-02d8cc50199d
+Search Time: 2026-01-10 16:53:34
+Completed: 2026-01-10 16:54:04
+Duration: 30.68 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Placements in Charusat
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://collegedunia.com/university/25482-charotar-university-of-science-and-technology-charusat-anand/placement
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+No research findings available on 'Placements in Charusat'.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+Upon searching through the specified sources, no entities or data points related to placries within Charusat were found. This could indicate that such a topic is either not widely studied, very niche, or simply non-existent.
+

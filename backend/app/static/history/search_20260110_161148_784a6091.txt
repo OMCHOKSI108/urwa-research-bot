@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 784a6091-6de6-46ae-bbe8-7aafc477abf1
+Search Time: 2026-01-10 16:11:48
+Completed: 2026-01-10 16:13:57
+Duration: 129.41 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+best programming languages 2024
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.vlinkinfo.com/blog/best-programming-languages-to-learn/
+2. https://pwskills.com/blog/top-programming-languages-to-learn-in-2024/
+3. https://www.pluralsight.com/resources/blog/upskilling/top-programming-languages-2025
+4. https://pesto.tech/resources/top-10-highest-paying-programming-languages-in-2024
+5. https://www.devjobsscanner.com/blog/top-8-most-demanded-programming-languages/
+6. https://www.hackerrank.com/blog/most-popular-languages-2024/
+7. https://survey.stackoverflow.co/2024/technology
+
+Total Sources: 7
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+N/A
+

@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 719e979b-731f-4385-b416-bb2e38ae3ce1
+Search Time: 2026-01-13 11:31:52
+Completed: 2026-01-13 11:35:50
+Duration: 237.82 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF SANSKRUTI is 90/100 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://github.com/OMCHOKSI108
+2. https://github.com/SANSKRUTIKUKADIYA3303
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Unable to compare GitHub PR files as no entities or data points were found.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+The provided query lacks specific information about the two GitHub pull request (PR) files that need comparison. To grade them, details such as code quality, completeness of tests, adherence to coding standards, and clarity in documentation are required within each PR file.
+

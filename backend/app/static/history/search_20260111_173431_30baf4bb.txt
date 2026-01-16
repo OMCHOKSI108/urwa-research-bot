@@ -1,0 +1,32 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 30baf4bb-d1e4-4f9c-be66-90b7afee53b3
+Search Time: 2026-01-11 17:34:31
+Completed: 2026-01-11 17:35:26
+Duration: 54.99 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+World's top 10 Economy by GDP
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://en.tempo.co/read/1914794/top-10-economies-in-the-world-countries-with-the-best-gdp
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+The United States is currently the world's largest economy by GDP.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+As of my knowledge cutoff in early 2023, according to data from sources such as the International Monetary Fund (IMF) and the World Bank, the United States holds the top position for nominal Gross Domestic Product (GDP), followed by China. These rankings are subject to change with new economic reports.
+

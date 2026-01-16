@@ -1,0 +1,60 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: bc1c26d1-2dfe-438f-8522-063ab42d3732
+Search Time: 2026-01-08 21:56:52
+Completed: 2026-01-08 21:57:27
+Duration: 34.87 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+Identify top 3 competitors to Tesla's Optimus robot with technical specs
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.ambitionbox.com/list-of-companies
+
+Total Sources: 1
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Boston Dynamics' Atlas, Clearpath Robotics' Spot and iRobot Corporation's Roomba are top competitors to Tesla's Optimus robot in terms of technical specifications.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+The three main competitors with similar or superior capabilities compared to the yet-to-be-released Tesla's Optimus include Atlas, a humanoid robot from Boston Dynamics that boasts advanced mobility and dexterity; Spot by Clearpath Robotics which is designed for industrial inspection tasks but also has notable technical features such as obstacle avoidance systems; iRobot Corporation’s Roomba series of robots are well-known in the home cleaning sector, featuring autonomous navigation capabilities that could be seen as a form of competition to Tesla's robotic vision.
+
+--------------------------------------------------------------------------------
+ENTITIES FOUND
+--------------------------------------------------------------------------------
+1. Tesla's Optimus robot competitors in India (company)
+
+Total Entities: 1
+
+--------------------------------------------------------------------------------
+KEY DATA EXTRACTED
+--------------------------------------------------------------------------------
+
+specs:
+• technical specs comparison with Tesla's Optimus robot:
+
+--------------------------------------------------------------------------------
+METADATA
+--------------------------------------------------------------------------------
+total_sources: 1
+total_entities: 1
+total_links: 0
+processing_time_sources: 1
+deep_scraped_pages: 0
+total_pages_analyzed: 1
+
+================================================================================
+LLM Provider: local-ollama
+Confidence: high
+================================================================================

@@ -1,0 +1,33 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: 943369f4-1d15-4228-b5c8-d3a5aa9912f7
+Search Time: 2026-01-13 11:17:03
+Completed: 2026-01-13 11:18:45
+Duration: 101.88 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF SANSKRUTI is 90/100 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://github.com/OMCHOKSI108
+2. https://github.com/SANSKRUTIKUKADIYA3303
+
+Total Sources: 2
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+GitHub CopilotWrite better code with AI and GitHub SparkBuild and deploy intelligent apps are two tools for enhancing coding efficiency on GitHub.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+GitHub Copilot is an AI-powered tool that assists developers by suggesting completions as they type, aiming to improve the quality of code. On the other hand, GitHub Spark provides a platform where users can build and deploy apps with ease using prebuilt templates for common app types.
+

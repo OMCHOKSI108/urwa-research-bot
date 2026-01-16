@@ -1,0 +1,34 @@
+================================================================================
+URWA SEARCH HISTORY
+================================================================================
+
+Request ID: d0af80bd-190b-435e-b36e-a34c1fd6a373
+Search Time: 2026-01-10 16:49:33
+Completed: 2026-01-10 16:50:38
+Duration: 64.68 seconds
+Status: success
+
+--------------------------------------------------------------------------------
+QUERY
+--------------------------------------------------------------------------------
+USA and IRan relations in 2026 
+
+--------------------------------------------------------------------------------
+SOURCES SCRAPED
+--------------------------------------------------------------------------------
+1. https://www.usatoday.com/story/news/world/2026/01/09/iran-protests-crackdown-trump-threat/88097142007/
+2. https://www.nytimes.com/2026/01/04/world/middleeast/iran-protests.html
+3. https://brusselsmorning.com/us-iran-relations-washington-2026/89748/
+
+Total Sources: 3
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+No specific information available on USA and Iran relations in 2decade.
+
+--------------------------------------------------------------------------------
+DETAILED ANSWER
+--------------------------------------------------------------------------------
+As of now, there is no detailed research or data points that specifically discuss the relationship between the United States (USA) and Iran for the year 2026. It's important to note that predicting future diplomatic relationships involves numerous variables including domestic politics within each country, global geopolitical shifts, economic conditions among others.
+
