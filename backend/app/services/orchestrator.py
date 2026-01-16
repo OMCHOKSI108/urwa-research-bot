@@ -29,9 +29,9 @@ import googlesearch
 
 # Define directories
 from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-# Points to docs/logs at project root
-DOCS_LOG_DIR = BASE_DIR.parent / "docs" / "logs"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # Points to backend/
+PROJECT_ROOT = BASE_DIR.parent  # Points to project root
+DOCS_LOG_DIR = PROJECT_ROOT / "docs" / "logs"
 
 EXPORT_DIR = str(BASE_DIR / "app/static/exports")
 SESSION_DIR = str(BASE_DIR / "app/static/sessions")

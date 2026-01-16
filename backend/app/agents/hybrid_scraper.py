@@ -19,6 +19,7 @@ from typing import Optional, Dict, Tuple
 from urllib.parse import urlparse
 import asyncio
 import time
+import threading
 
 
 class HybridScraper:
@@ -64,7 +65,8 @@ class HybridScraper:
         self.ultra_stealth = UltraStealthScraper()
         self.use_strategies = use_strategies
 
-        # Stats tracking
+        # Stats tracking (thread-safe)
+        self._stats_lock = threading.Lock()
         self.stats = {
             "lightweight_success": 0,
             "playwright_success": 0,
@@ -139,7 +141,8 @@ class HybridScraper:
         Returns:
             Markdown/JSON content or empty string if failed
         """
-        self.stats["total_requests"] += 1
+        with self._stats_lock:
+            self.stats["total_requests"] += 1
         start_time = time.time()
         domain = self._get_domain(url)
         
@@ -264,19 +267,16 @@ class HybridScraper:
         if force_playwright:
             return "stealth"
         
+        # Safety Override: If site is known extreme risk, always use ultra_stealth
+        if profile and profile.get("risk") == "extreme":
+            logger.info(f"[Hybrid] Extreme risk site detected. Forcing ultra_stealth strategy.")
+            return "ultra_stealth"
+        
         # Check learned recommendations
         if self.use_strategies and self._strategy_learner:
             try:
                 learned = self._strategy_learner.recommend(domain)
                 
-                # Safety Override: If site is known extreme risk, don't trust "stealth" or "lightweight"
-                # even if they seemed to work previously (often they return 200 OK but empty/garbage content)
-                risk = profile.get("risk", "low") if profile else "low"
-                if risk == "extreme" and profile.get("recommended_strategy") == "ultra_stealth":
-                    if learned != "ultra_stealth":
-                         logger.info(f"[Hybrid] Site is {risk} risk. Overriding learned '{learned}' -> 'ultra_stealth'")
-                         return "ultra_stealth"
-
                 if learned and learned != "lightweight":
                     logger.info(f"[Hybrid] Using learned strategy: {learned}")
                     return learned
@@ -331,20 +331,22 @@ class HybridScraper:
                  is_valid = True
 
             if is_valid:
-                # Update stats
-                if strat == "lightweight":
-                    self.stats["lightweight_success"] += 1
-                elif strat == "stealth":
-                    self.stats["playwright_success"] += 1
-                else:
-                    self.stats["ultra_stealth_success"] += 1
+                # Update stats (thread-safe)
+                with self._stats_lock:
+                    if strat == "lightweight":
+                        self.stats["lightweight_success"] += 1
+                    elif strat == "stealth":
+                        self.stats["playwright_success"] += 1
+                    else:
+                        self.stats["ultra_stealth_success"] += 1
                 
                 return content, strat
             
             logger.info(f"[Hybrid] {strat} failed (reason: {failure_reason}), trying next...")
         
-        # All failed
-        self.stats["total_failures"] += 1
+        # All failed (thread-safe)
+        with self._stats_lock:
+            self.stats["total_failures"] += 1
         return "", strategies_to_try[-1]
 
     async def _execute_strategy(self, url: str, strategy: str) -> str:
@@ -372,29 +374,34 @@ class HybridScraper:
             return ""
 
         # Global JSON Unpacking (for stealth/ultra_stealth which return JSON strings)
-        if raw_result and raw_result.strip().startswith("{"):
-            try:
-                import json
-                data = json.loads(raw_result)
-                if isinstance(data, dict):
-                    # Extract text content from various keys used by our scrapers
-                    text = data.get("raw_html_content", "") or data.get("content", "") or data.get("text_content", "")
-                    
-                    # If text implies empty body but we have structured data, format it
-                    items = data.get("structured_data", {}).get("items", [])
-                    
-                    if items:
-                        text += "\n\n### Extracted Items:\n"
-                        for item in items[:20]:
-                             title = item.get('title') or item.get('name')
-                             if title:
-                                 text += f"- {title} {item.get('price', '')}\n"
-                    
-                    if text:
-                        return text
-            except Exception as e:
-                # If parsing fails, return raw result (might be just JSON-like text)
-                logger.debug(f"[Hybrid] JSON unpack check failed: {e}")
+        if raw_result and len(raw_result) > 10:
+            # More robust JSON detection - check if it's valid JSON first
+            stripped = raw_result.strip()
+            if stripped.startswith("{") and stripped.endswith("}"):
+                try:
+                    import json
+                    data = json.loads(stripped)
+                    if isinstance(data, dict):
+                        # Extract text content from various keys used by our scrapers
+                        text = data.get("raw_html_content", "") or data.get("content", "") or data.get("text_content", "")
+                        
+                        # If text implies empty body but we have structured data, format it
+                        items = data.get("structured_data", {}).get("items", [])
+                        
+                        if items:
+                            text += "\n\n### Extracted Items:\n"
+                            for item in items[:20]:
+                                 title = item.get('title') or item.get('name')
+                                 if title:
+                                     text += f"- {title} {item.get('price', '')}\n"
+                        
+                        if text:
+                            return text
+                except (json.JSONDecodeError, ValueError) as e:
+                    # Not valid JSON, return raw result
+                    logger.debug(f"[Hybrid] Content looks like JSON but isn't valid, using as-is: {e}")
+                except Exception as e:
+                    logger.warning(f"[Hybrid] Unexpected error in JSON unpacking: {e}")
         
         return raw_result
 
@@ -428,17 +435,18 @@ class HybridScraper:
         return ""
 
     def get_stats(self) -> dict:
-        """Return scraping strategy statistics."""
-        total = self.stats["total_requests"] or 1
-        return {
-            **self.stats,
-            "success_rate": (self.stats["lightweight_success"] + 
-                           self.stats["playwright_success"] + 
-                           self.stats["ultra_stealth_success"]) / total,
-            "lightweight_rate": self.stats["lightweight_success"] / total,
-            "playwright_rate": self.stats["playwright_success"] / total,
-            "ultra_stealth_rate": self.stats["ultra_stealth_success"] / total
-        }
+        """Return scraping strategy statistics (thread-safe)."""
+        with self._stats_lock:
+            total = self.stats["total_requests"] or 1
+            return {
+                **self.stats,
+                "success_rate": (self.stats["lightweight_success"] + 
+                               self.stats["playwright_success"] + 
+                               self.stats["ultra_stealth_success"]) / total,
+                "lightweight_rate": self.stats["lightweight_success"] / total,
+                "playwright_rate": self.stats["playwright_success"] / total,
+                "ultra_stealth_rate": self.stats["ultra_stealth_success"] / total
+            }
 
     def get_session_history(self) -> list:
         """Return combined session history from all scrapers."""
