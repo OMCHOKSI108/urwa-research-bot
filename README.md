@@ -1,13 +1,9 @@
 
 <div align="center">
 
-# ╔══════════════════════════════════════════════════════════════╗
+# URWA BRAIN v3.5
 
-# ║                       **URWA BRAIN v3.5**                    ║
-
-# ╚══════════════════════════════════════════════════════════════╝
-
-### 🚀 AI-Powered Autonomous Research & Stealth Scraping Engine
+### AI-Powered Autonomous Research & Stealth Scraping Engine
 
 **From simple queries to multi-stage intelligence pipelines — fully automated.**
 
@@ -21,7 +17,7 @@
 
 ---
 
-## 🧠 What is URWA Brain?
+## What is URWA Brain?
 
 **URWA Brain** is an **agent-driven research and scraping platform** that understands intent, adapts its strategy, and delivers **structured intelligence** — not just raw HTML.
 
@@ -36,7 +32,7 @@ And then executes the **entire pipeline autonomously**.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 Launch the **URWA Terminal Interface** in one command.
 
@@ -54,21 +50,21 @@ urwa sans start
 
 ---
 
-## ✨ Core Capabilities
+## Core Capabilities
 
 | Capability                 |  Status  | What it actually does                                     |
 | -------------------------- | :------: | --------------------------------------------------------- |
-| **Intent-Aware Agent**     | ✅ ACTIVE | Understands *research vs scrape vs analyze* automatically |
-| **Ultra-Stealth Scraping** | ✅ ACTIVE | Defeats 403s, bot protection, Cloudflare, JS challenges   |
-| **Deep Research Mode**     | ✅ ACTIVE | Multi-query web search → synthesis → citations            |
-| **Site Intelligence**      | ✅ ACTIVE | Profiles protection level before execution                |
-| **Private AI Mode**        | ✅ ACTIVE | Fully local LLM via **Ollama** (Phi-3, Llama-3)           |
-| **Hybrid LLM Routing**     | ✅ ACTIVE | Switch between Ollama / Groq / OpenAI                     |
-| **API-First Design**       | ✅ ACTIVE | REST API + Swagger UI                                     |
+| **Intent-Aware Agent**     | ACTIVE | Understands *research vs scrape vs analyze* automatically |
+| **Ultra-Stealth Scraping** | ACTIVE | Defeats 403s, bot protection, Cloudflare, JS challenges   |
+| **Deep Research Mode**     | ACTIVE | Multi-query web search to synthesis to citations            |
+| **Site Intelligence**      | ACTIVE | Profiles protection level before execution                |
+| **Private AI Mode**        | ACTIVE | Fully local LLM via **Ollama** (Phi-3, Llama-3)           |
+| **Hybrid LLM Routing**     | ACTIVE | Switch between Ollama / Groq / OpenAI                     |
+| **API-First Design**       | ACTIVE | REST API + Swagger UI                                     |
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -89,7 +85,7 @@ graph TD
 
 ---
 
-## 📦 Installation & Setup
+## Installation & Setup
 
 ### Option A — One-Command CLI (Recommended)
 
@@ -152,11 +148,11 @@ GROQ_API_KEY=your_key_here
 
 ---
 
-## 🔌 API Usage
+## API Usage
 
 Backend runs on **`http://localhost:8000`**
 
-### 🧠 Unified Agent Endpoint
+### Unified Agent Endpoint
 
 `POST /api/v1/agent`
 
@@ -187,7 +183,7 @@ Backend runs on **`http://localhost:8000`**
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```text
 urwa-brain/
@@ -212,17 +208,17 @@ urwa-brain/
 
 ---
 
-## 🧩 Use-Cases
+## Use-Cases
 
-* 🔎 **Market Intelligence** – competitor pricing, feature comparison
-* 📰 **OSINT & Research** – multi-source verification
-* 🧪 **Data Extraction** – from JS-heavy protected sites
-* 🤖 **AI Pipelines** – plug into agents, workflows, MCP servers
-* 🏫 **Academic Projects** – real-world autonomous systems
+* **Market Intelligence** - competitor pricing, feature comparison
+* **OSINT & Research** - multi-source verification
+* **Data Extraction** - from JS-heavy protected sites
+* **AI Pipelines** - plug into agents, workflows, MCP servers
+* **Academic Projects** - real-world autonomous systems
 
 ---
 
-## 🛡️ Compliance & Ethics
+## Compliance & Ethics
 
 URWA Brain is built with:
 
@@ -233,7 +229,7 @@ URWA Brain is built with:
 
 ---
 
-## 🛣️ Roadmap
+## Roadmap
 
 * [ ] MCP Server integration
 * [ ] n8n workflow triggers
@@ -247,7 +243,7 @@ URWA Brain is built with:
 
 ### **Built for Speed. Engineered for Stealth. Designed for Intelligence.**
 
-[🐞 Report Bug](#) • [✨ Request Feature](#) • [📖 Docs](#)
+[Report Bug](https://github.com/yourusername/urwa-brain/issues) | [Request Feature](https://github.com/yourusername/urwa-brain/issues/new) | [Documentation](docs/index.md) | [API Reference](docs/api/overview.md)
 
 </div>
 
