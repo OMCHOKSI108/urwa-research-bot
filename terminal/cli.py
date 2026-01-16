@@ -1,17 +1,15 @@
 """
-URWA Brain - Terminal CLI
-Beautiful command-line interface for URWA Brain AI Agent
+URWA Brain v3.5 - Terminal CLI
+Professional, errorless command-line interface with comprehensive API integration
 """
 
 import sys
 import time
 import asyncio
 import subprocess
-import argparse
 import os
 from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, Any, List, Union
+from typing import Dict, Any
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
@@ -20,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 import warnings
 warnings.filterwarnings("ignore")
 
-# --- Dependencies ---
+# Install dependencies if needed
 try:
     from rich.console import Console
     from rich.panel import Panel
@@ -28,8 +26,6 @@ try:
     from rich.prompt import Prompt, Confirm
     from rich.table import Table
     from rich.markdown import Markdown
-    from rich.live import Live
-    from rich import print as rprint
     import aiohttp
     import requests
 except ImportError:
@@ -41,130 +37,1157 @@ except ImportError:
     from rich.prompt import Prompt, Confirm
     from rich.table import Table
     from rich.markdown import Markdown
-    from rich.live import Live
-    from rich import print as rprint
     import aiohttp
     import requests
 
 console = Console()
 
-class Config:
-    API_URL = "http://localhost:8000"
-    OLLAMA_URL = "http://localhost:11434"
-    USE_OLLAMA = False
-    
-class URWAClient:
-    """Robust API Client"""
-    
-    @staticmethod
-    async def request(endpoint: str, method: str = "POST", params: dict = None, timeout: int = 300) -> Dict[str, Any]:
-        url = f"{Config.API_URL}{endpoint}"
-        if params:
-            # Clean bools
-            params = {k: str(v).lower() if isinstance(v, bool) else v for k, v in params.items()}
-            
-        try:
-            async with aiohttp.ClientSession() as session:
-                kwargs = {"params": params, "timeout": aiohttp.ClientTimeout(total=timeout)}
-                
-                if method == "POST":
-                    async with session.post(url, **kwargs) as resp:
-                        if resp.status == 422:
-                            text = await resp.text()
-                            return {"status": "error", "message": f"Validation Error: {text}"}
-                        return await resp.json()
-                else:
-                    async with session.get(url, **kwargs) as resp:
-                        return await resp.json()
-                        
-        except aiohttp.ClientConnectorError:
-            return {"status": "error", "message": f"Could not connect to backend at {Config.API_URL}. Is it running?"}
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
+# Configuration
+API_URL = "http://localhost:8000"
+USE_OLLAMA = False
+
+# ========== CORE FUNCTIONS ==========
 
 def print_banner():
-    # Clearer 'Standard' Font ASCII Banner
-    console.print(r"""[bold cyan]
-   __  ______ _       _____ 
-  / / / / __ \ |     / /   |
- / / / / /_/ / | /| / / /| |
-/ /_/ / _, _/| |/ |/ / ___ |
-\____/_/ |_| |__/|__/_/  |_|
-                            
-      [red]v3.5[/red]
-    [/bold cyan]""")
-    
-    console.print("[dim]   [+] Tool Created by URWA Team (AI Agent)[/dim]")
+    """Display URWA Brain banner with professional styling"""
+    banner_panel = Panel(
+        r"""[bold gradient(cyan,blue)]
+    ██╗   ██╗██████╗ ██╗    ██╗ █████╗     ██████╗ ██████╗  █████╗ ██╗███╗   ██╗
+    ██║   ██║██╔══██╗██║    ██║██╔══██╗    ██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║
+    ██║   ██║██████╔╝██║ █╗ ██║███████║    ██████╔╝██████╔╝███████║██║██╔██╗ ██║
+    ██║   ██║██╔══██╗██║███╗██║██╔══██║    ██╔══██╗██╔══██╗██╔══██║██║██║╚██╗██║
+    ╚██████╔╝██║  ██║╚███╔███╔╝██║  ██║    ██████╔╝██║  ██║██║  ██║██║██║ ╚████║
+     ╚═════╝ ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+[/bold gradient(cyan,blue)]
+                    [bold yellow]⚡ Autonomous Web Research Agent ⚡[/bold yellow]
+                        [bold red]Version 3.5[/bold red] | [dim]Powered by AI[/dim]""",
+        border_style="bold cyan",
+        padding=(1, 2),
+        title="[bold white]🤖 URWA Brain[/bold white]",
+        subtitle="[dim]Created by OM CHOKSI (SANS)"
+    )
+    console.print(banner_panel)
     console.print()
 
+def check_api_server() -> bool:
+    """Check if backend API is running"""
+    try:
+        resp = requests.get(f"{API_URL}/api/v1/system/health", timeout=3)
+        return resp.status_code == 200
+    except requests.exceptions.ConnectionError:
+        return False
+    except requests.exceptions.Timeout:
+        return False
+    except Exception:
+        return False
+
 def start_backend():
-    """Start the backend server in a new window/tab"""
+    """Start backend server in new window"""
     console.print("[yellow]Starting backend server...[/yellow]")
     backend_dir = Path(__file__).parent.parent / "backend"
     
     if sys.platform == "win32":
-        cmd = f'start "URWA Backend" /min cmd /k "cd /d {backend_dir} && ..\\venv\\Scripts\\activate && uvicorn app.main:app --reload"'
-        os.system(cmd)
+        venv_activate = Path(__file__).parent.parent / "venv" / "Scripts" / "activate.bat"
+        cmd = f'start "URWA Backend" cmd /k "cd /d {backend_dir} && call {venv_activate} && python run.py"'
+        subprocess.Popen(cmd, shell=True)
     else:
-        # Linux/Mac
-        cmd = f"cd {backend_dir} && ../venv/bin/uvicorn app.main:app --reload"
+        cmd = f"cd {backend_dir} && ../venv/bin/python run.py"
         subprocess.Popen(cmd, shell=True, start_new_session=True)
     
     console.print("[dim]Waiting for server to initialize...[/dim]")
-    
-    # Wait for health check
-    for _ in range(10):
-        try:
-            requests.get(f"{Config.API_URL}/health", timeout=1)
-            console.print("[green]Backend Online![/green]")
+    for _ in range(15):
+        time.sleep(1)
+        if check_api_server():
+            console.print("[green]✓ Backend Online![/green]")
             return True
-        except:
-            time.sleep(2)
-            
+    
+    console.print("[red]✗ Failed to start backend![/red]")
     return False
 
 def check_services():
+    """Check backend and Ollama status with enhanced UI"""
+    global USE_OLLAMA
+    
+    # Create status table
+    status_table = Table(
+        show_header=True,
+        header_style="bold magenta",
+        border_style="cyan",
+        title="[bold cyan]🔍 System Health Check[/bold cyan]",
+        title_style="bold cyan",
+        box=None
+    )
+    status_table.add_column("Service", style="bold white", width=20)
+    status_table.add_column("Status", width=25)
+    status_table.add_column("Details", style="dim")
+    
     # Check Backend
-    try:
-        requests.get(f"{Config.API_URL}/health", timeout=1)
-        console.print("[green]✔ Backend is Online[/green]")
-    except:
-        console.print("[red]✘ Backend is Offline[/red]")
-        if Confirm.ask("Start Backend Server?"):
-            start_backend()
-            
+    backend_online = check_api_server()
+    
+    if not backend_online:
+        status_table.add_row(
+            "🔌 Backend API",
+            "[red]● OFFLINE[/red]",
+            f"Not responding at {API_URL}"
+        )
+        status_table.add_row(
+            "🧠 Ollama LLM",
+            "[dim]○ PENDING[/dim]",
+            "Waiting for backend"
+        )
+        console.print(status_table)
+        console.print()
+        
+        if Confirm.ask("[yellow]⚡ Start Backend Server?[/yellow]", default=True):
+            if not start_backend():
+                console.print(Panel(
+                    "[yellow]⚠ Please start backend manually:[/yellow]\n\n"
+                    "  [cyan]cd backend[/cyan]\n"
+                    "  [cyan]python run.py[/cyan]\n\n"
+                    f"Backend should run at: [bold]{API_URL}[/bold]",
+                    border_style="yellow",
+                    title="Manual Start Required"
+                ))
+                sys.exit(1)
+        else:
+            console.print("[dim]Exiting...[/dim]")
+            sys.exit(0)
+        return
+    
+    # Backend is online
+    status_table.add_row(
+        "🔌 Backend API",
+        "[green]● ONLINE[/green]",
+        f"Connected at {API_URL}"
+    )
+    
     # Check Ollama
     try:
-        requests.get(f"{Config.OLLAMA_URL}", timeout=1)
-        Config.USE_OLLAMA = True
-        console.print("[green]✔ Ollama Detected[/green]")
+        resp = requests.get("http://localhost:11434/api/tags", timeout=2)
+        if resp.status_code == 200:
+            USE_OLLAMA = True
+            status_table.add_row(
+                "🧠 Ollama LLM",
+                "[green]● DETECTED[/green]",
+                "Local AI available"
+            )
+        else:
+            status_table.add_row(
+                "🧠 Ollama LLM",
+                "[yellow]○ NOT RUNNING[/yellow]",
+                "Using Cloud LLM"
+            )
     except:
-        console.print("[yellow]⚠ Ollama Not Detected (Using Cloud Fallback)[/yellow]")
+        status_table.add_row(
+            "🧠 Ollama LLM",
+            "[yellow]○ NOT FOUND[/yellow]",
+            "Using Cloud LLM (Gemini/Groq)"
+        )
+    
+    console.print(status_table)
+    console.print()
 
-async def execute_task(task_type: str, query: str):
-    """Execute a task with nice UI"""
-    endpoint_map = {
-        "chat": "/api/v1/research",     # Unified Research Chat
-        "research": "/api/v1/research", # Deep research
-        "scrape": "/api/v1/agent",      # Unified Agent (can handle specific scrape requests)
-        "analyze": "/api/v1/agent"      # Unified Agent
-    }
+async def call_api(endpoint: str, method: str = "POST", params: Dict = None, json_data: Dict = None, timeout: int = 180) -> Dict:
+    """Make API call with proper error handling"""
+    url = f"{API_URL}{endpoint}"
     
-    endpoint = endpoint_map.get(task_type, "/api/v1/agent")
+    try:
+        async with aiohttp.ClientSession() as session:
+            kwargs = {"timeout": aiohttp.ClientTimeout(total=timeout)}
+            
+            if params:
+                kwargs["params"] = params
+            if json_data:
+                kwargs["json"] = json_data
+            
+            if method == "POST":
+                async with session.post(url, **kwargs) as resp:
+                    if resp.status == 422:
+                        text = await resp.text()
+                        return {"status": "error", "message": f"Validation Error: {text}"}
+                    return await resp.json()
+            else:
+                async with session.get(url, **kwargs) as resp:
+                    return await resp.json()
+                    
+    except aiohttp.ClientConnectorError:
+        return {"status": "error", "message": f"Cannot connect to backend at {API_URL}"}
+    except asyncio.TimeoutError:
+        return {"status": "error", "message": "Request timeout - operation took too long"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def show_main_menu() -> str:
+    """Display professional main menu with enhanced UI"""
     
-    # Params setup
-    params = {"use_ollama": Config.USE_OLLAMA}
+    # Create menu panel
+    menu_content = Table.grid(padding=(0, 4))
+    menu_content.add_column(style="bold cyan", justify="left")
+    menu_content.add_column(style="white", justify="left")
+    menu_content.add_column(style="bold cyan", justify="left")
+    menu_content.add_column(style="white", justify="left")
     
-    if task_type == "research":
-        params.update({"query": query, "deep": True})
-    elif task_type == "chat":
-        params.update({"query": query, "deep": False})
+    menu_content.add_row(
+        "🤖 [01]", "[bold yellow]Master AI[/bold yellow]      ",
+        "🔍 [05]", "[bold white]Site Analyzer[/bold white]"
+    )
+    menu_content.add_row(
+        "💬 [02]", "[bold white]Chat Mode[/bold white]       ",
+        "📊 [06]", "[bold white]System Status[/bold white]"
+    )
+    menu_content.add_row(
+        "📚 [03]", "[bold white]Deep Research[/bold white]   ",
+        "🚪 [00]", "[bold red]Exit[/bold red]"
+    )
+    menu_content.add_row(
+        "🕷️ [04]", "[bold white]Scraper Tool[/bold white]    ",
+        "", ""
+    )
+    
+    menu_panel = Panel(
+        menu_content,
+        border_style="bold cyan",
+        title="[bold yellow]⚡ Main Menu ⚡[/bold yellow]",
+        subtitle="[dim]Select an option below[/dim]",
+        padding=(1, 2)
+    )
+    
+    console.print(menu_panel)
+    console.print()
+    
+    choice = Prompt.ask(
+        "[bold cyan]┃[/bold cyan] [bold white]Enter your choice[/bold white]",
+        choices=["01", "1", "02", "2", "03", "3", "04", "4", "05", "5", "06", "6", "00", "0"],
+        default="01"
+    )
+    
+    # Normalize (01 -> 1)
+    if choice.startswith("0") and len(choice) > 1:
+        choice = choice[1]
+    
+    return choice
+
+async def call_api(endpoint: str, method: str = "POST", params: Dict = None, json_data: Dict = None, timeout: int = 180) -> Dict:
+    """Make API call with proper error handling"""
+    url = f"{API_URL}{endpoint}"
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            kwargs = {"timeout": aiohttp.ClientTimeout(total=timeout)}
+            
+            if params:
+                kwargs["params"] = params
+            if json_data:
+                kwargs["json"] = json_data
+            
+            if method == "POST":
+                async with session.post(url, **kwargs) as resp:
+                    if resp.status == 422:
+                        text = await resp.text()
+                        return {"status": "error", "message": f"Validation Error: {text}"}
+                    return await resp.json()
+            else:
+                async with session.get(url, **kwargs) as resp:
+                    return await resp.json()
+                    
+    except aiohttp.ClientConnectorError:
+        return {"status": "error", "message": f"Cannot connect to backend at {API_URL}"}
+    except asyncio.TimeoutError:
+        return {"status": "error", "message": "Request timeout - operation took too long"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# ========== MODE HANDLERS ==========
+
+async def master_ai_handler(query: str):
+    """Handle ANY request with intelligent routing - The MASTER mode"""
+    
+    # Display query panel with Master AI branding
+    console.print(Panel(
+        f"[bold yellow]{query}[/bold yellow]",
+        title="[bold yellow]🤖 Master AI Request[/bold yellow]",
+        border_style="yellow",
+        padding=(0, 2)
+    ))
+    console.print()
+    
+    # Show processing with dynamic spinner
+    with Progress(
+        SpinnerColumn(spinner_name="dots"),
+        TextColumn("[bold yellow]{task.description}[/bold yellow]"),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🧠 Analyzing request...", total=None)
+        
+        # Call the unified agent endpoint
+        result = await call_api(
+            "/api/v1/agent",
+            method="POST",
+            json_data={"input": query, "use_ollama": USE_OLLAMA},
+            timeout=300  # 5 minutes for complex operations
+        )
+        
+        progress.update(task, description="✅ Processing complete!")
+    
+    console.print()
+    
+    # Handle errors
+    if result.get("status") == "error":
+        console.print(Panel(
+            f"[bold red]❌ Error[/bold red]\n\n{result.get('message')}",
+            border_style="red",
+            title="Error Details"
+        ))
+        return
+    
+    # Display results based on intent/type
+    intent = result.get("intent", "unknown")
+    result_data = result.get("result", {})
+    result_type = result_data.get("type", "unknown")
+    
+    # Show what action was taken
+    action_taken = result.get("action_taken", "Processed your request")
+    console.print(Panel(
+        f"[bold green]✓ {action_taken}[/bold green]\n[dim]Intent: {intent} | Confidence: {result.get('confidence', 0):.0%}[/dim]",
+        border_style="green",
+        title="[bold green]Action Summary[/bold green]"
+    ))
+    console.print()
+    
+    # Display results based on type
+    if result_type == "research_analysis":
+        # Research result
+        if result_data.get("answer"):
+            console.print(Panel(
+                Markdown(result_data["answer"]),
+                title="[bold cyan]📚 Research Results[/bold cyan]",
+                border_style="cyan",
+                padding=(1, 2)
+            ))
+            
+            # Show sources
+            if result_data.get("sources"):
+                sources_table = Table(
+                    show_header=True,
+                    header_style="bold magenta",
+                    border_style="dim cyan",
+                    title="[bold magenta]📖 Sources[/bold magenta]",
+                    box=None
+                )
+                sources_table.add_column("#", style="dim", width=4)
+                sources_table.add_column("Source", style="white")
+                sources_table.add_column("URL", style="blue underline", overflow="fold")
+                
+                for i, src in enumerate(result_data["sources"][:10], 1):
+                    sources_table.add_row(
+                        f"[{i}]",
+                        src.get('title', 'Untitled')[:60],
+                        src.get('url', 'N/A')[:80]
+                    )
+                
+                console.print()
+                console.print(sources_table)
+    
+    elif result_type == "scrape_result":
+        # Single URL scrape result
+        if result_data.get("success"):
+            # Show extracted/analyzed data
+            if result_data.get("extracted_data"):
+                console.print(Panel(
+                    Markdown(result_data["extracted_data"]),
+                    title="[bold green]✨ Extracted Insights[/bold green]",
+                    border_style="green",
+                    padding=(1, 2)
+                ))
+            
+            # Show stats
+            stats_grid = Table.grid(padding=(0, 2))
+            stats_grid.add_column(style="bold green")
+            stats_grid.add_column(style="white")
+            stats_grid.add_row("✅ Status:", "Success")
+            stats_grid.add_row("🔗 URL:", result_data.get("url", "N/A")[:70])
+            stats_grid.add_row("📏 Length:", f"{result_data.get('content_length', 0):,} characters")
+            
+            console.print()
+            console.print(Panel(stats_grid, title="[bold cyan]📊 Scraping Stats[/bold cyan]", border_style="cyan"))
+        else:
+            console.print(Panel(
+                f"[bold yellow]⚠️ Scraping Failed[/bold yellow]\n\n{result_data.get('error', 'Unknown error')}",
+                border_style="yellow"
+            ))
+    
+    elif result_type == "comparison_result":
+        # Comparison of multiple URLs
+        console.print(Panel(
+            Markdown(result_data.get("comparison_analysis", "No analysis available")),
+            title="[bold yellow]⚖️ Comparison Analysis[/bold yellow]",
+            border_style="yellow",
+            padding=(1, 2)
+        ))
+        
+        # Show stats
+        console.print()
+        stats_grid = Table.grid(padding=(0, 2))
+        stats_grid.add_column(style="bold cyan")
+        stats_grid.add_column(style="white")
+        stats_grid.add_row("📊 URLs Scraped:", str(result_data.get("scraped_count", 0)))
+        stats_grid.add_row("❌ Failed:", str(result_data.get("failed_count", 0)))
+        stats_grid.add_row("🔗 URLs:", "\n".join(result_data.get("urls", [])[:5]))
+        
+        console.print(Panel(stats_grid, title="[bold cyan]Summary[/bold cyan]", border_style="cyan"))
+    
+    elif result_type == "multi_scrape_result":
+        # Multiple URLs scraped
+        console.print(Panel(
+            Markdown(result_data.get("combined_analysis", "No analysis available")),
+            title="[bold green]📊 Combined Analysis[/bold green]",
+            border_style="green",
+            padding=(1, 2)
+        ))
+        
+        # Show individual results
+        if result_data.get("individual_results"):
+            console.print()
+            results_table = Table(
+                show_header=True,
+                header_style="bold cyan",
+                border_style="dim cyan",
+                title="[bold cyan]📄 Individual Results[/bold cyan]",
+                box=None
+            )
+            results_table.add_column("#", style="dim", width=4)
+            results_table.add_column("URL", style="blue underline")
+            results_table.add_column("Length", style="green", justify="right")
+            
+            for i, res in enumerate(result_data["individual_results"], 1):
+                results_table.add_row(
+                    f"[{i}]",
+                    res.get("url", "")[:70],
+                    f"{res.get('content_length', 0):,} chars"
+                )
+            
+            console.print(results_table)
+    
+    elif result_type == "fact_check":
+        # Fact check result
+        verdict = result_data.get("verdict", "unverified")
+        verdict_colors = {
+            "likely_true": "green",
+            "likely_false": "red",
+            "partially_true": "yellow",
+            "unverified": "white"
+        }
+        verdict_icons = {
+            "likely_true": "✅",
+            "likely_false": "❌",
+            "partially_true": "⚠️",
+            "unverified": "❓"
+        }
+        
+        color = verdict_colors.get(verdict, "white")
+        icon = verdict_icons.get(verdict, "❓")
+        
+        console.print(Panel(
+            f"[bold {color}]{icon} {verdict.upper().replace('_', ' ')}[/bold {color}]\n\n"
+            f"[bold white]Claim:[/bold white] {result_data.get('claim', '')}\n\n"
+            f"{result_data.get('analysis', '')}",
+            border_style=color,
+            title=f"[bold {color}]🔍 Fact Check Result[/bold {color}]",
+            padding=(1, 2)
+        ))
+        
+        # Show sources
+        if result_data.get("sources"):
+            sources_table = Table(
+                show_header=True,
+                header_style="bold magenta",
+                border_style="dim",
+                title="[bold]📖 Verification Sources[/bold]",
+                box=None
+            )
+            sources_table.add_column("#", style="dim", width=4)
+            sources_table.add_column("Source", style="white")
+            
+            for i, src in enumerate(result_data["sources"][:10], 1):
+                sources_table.add_row(f"[{i}]", src.get('title', 'Untitled')[:80])
+            
+            console.print()
+            console.print(sources_table)
+    
+    elif result_type == "site_profile":
+        # Site profiling result
+        risk = result_data.get("risk_level", "unknown")
+        risk_colors = {"low": "green", "medium": "yellow", "high": "red", "extreme": "bold red", "unknown": "white"}
+        color = risk_colors.get(risk, "white")
+        
+        profile_table = Table(show_header=False, box=None, border_style="dim")
+        profile_table.add_column("Property", style="bold cyan", width=25)
+        profile_table.add_column("Value", style="white")
+        
+        profile_table.add_row("🔗 URL", result_data.get("url", ""))
+        profile_table.add_row("⚠️ Risk Level", f"[{color}]{risk.upper()}[/{color}]")
+        profile_table.add_row("🛡️ Protection", result_data.get("protection", "None"))
+        profile_table.add_row("🎯 Strategy", result_data.get("recommended_strategy", "stealth"))
+        profile_table.add_row("✅ Can Scrape", "Yes" if result_data.get("can_scrape") else "Difficult")
+        
+        console.print(Panel(
+            profile_table,
+            title="[bold yellow]🔍 Site Profile[/bold yellow]",
+            border_style="yellow",
+            padding=(1, 2)
+        ))
+    
     else:
-        # Identify as agent prompt
-        prefix = "scrape" if task_type == "scrape" else "analyze" 
-        if not query.lower().startswith(prefix):
-            query = f"{prefix} {query}"
-        params.update({"input": query})
+        # Generic result display
+        console.print(Panel(
+            Markdown(str(result_data)),
+            title="[bold cyan]📄 Result[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        ))
+    
+    # Show follow-up suggestions
+    if result.get("follow_up_suggestions"):
+        console.print()
+        follow_up_panel = "\n".join([f"• {s}" for s in result["follow_up_suggestions"][:3]])
+        console.print(Panel(
+            follow_up_panel,
+            title="[bold magenta]💡 Follow-up Suggestions[/bold magenta]",
+            border_style="magenta",
+            padding=(0, 2)
+        ))
+    
+    # Show processing time
+    if result.get("processing_time"):
+        console.print()
+        console.print(f"[dim]⏱️  Completed in {result['processing_time']}s[/dim]")
+
+async def chat_mode_handler(query: str):
+    """Handle chat/research queries with enhanced UI"""
+    
+    # Display query panel
+    console.print(Panel(
+        f"[bold white]{query}[/bold white]",
+        title="[bold cyan]💬 Your Question[/bold cyan]",
+        border_style="cyan",
+        padding=(0, 2)
+    ))
+    console.print()
+    
+    with Progress(
+        SpinnerColumn(spinner_name="dots12"),
+        TextColumn("[bold cyan]{task.description}[/bold cyan]"),
+        BarColumn(complete_style="cyan", finished_style="green"),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🤖 AI is thinking...", total=None)
+        
+        result = await call_api(
+            "/api/v1/research",
+            method="POST",
+            json_data={
+                "query": query,
+                "deep": False,
+                "use_ollama": USE_OLLAMA
+            }
+        )
+        
+        progress.update(task, description="✅ Complete!")
+    
+    console.print()
+    
+    if result.get("status") == "error":
+        console.print(Panel(
+            f"[bold red]❌ Error[/bold red]\n\n{result.get('message')}",
+            border_style="red",
+            title="Error Details"
+        ))
+        return
+    
+    # Display answer with enhanced formatting
+    if result.get("answer"):
+        console.print(Panel(
+            Markdown(result["answer"]),
+            title="[bold green]✨ AI Response[/bold green]",
+            border_style="green",
+            padding=(1, 2)
+        ))
+        
+        # Display sources in a table
+        if result.get("sources"):
+            sources_table = Table(
+                show_header=True,
+                header_style="bold cyan",
+                border_style="dim",
+                title="[bold cyan]📚 Sources[/bold cyan]",
+                box=None
+            )
+            sources_table.add_column("#", style="dim", width=3)
+            sources_table.add_column("Title", style="bold")
+            sources_table.add_column("URL", style="blue underline")
+            
+            for i, src in enumerate(result["sources"][:5], 1):
+                url = src.get("url", "")
+                title = src.get("title", url[:50] + "..." if len(url) > 50 else url)
+                sources_table.add_row(str(i), title, url)
+            
+            console.print()
+            console.print(sources_table)
+    else:
+        console.print(Panel(str(result), title="Result", border_style="cyan"))
+
+async def deep_research_handler(query: str):
+    """Handle deep research queries with enhanced UI"""
+    
+    # Display research topic panel
+    console.print(Panel(
+        f"[bold white]{query}[/bold white]",
+        title="[bold magenta]📚 Deep Research Topic[/bold magenta]",
+        border_style="magenta",
+        padding=(0, 2)
+    ))
+    
+    console.print(Panel(
+        "[yellow]⏱️ This may take 1-2 minutes[/yellow]\n"
+        "[dim]Searching multiple sources, analyzing content, synthesizing information...[/dim]",
+        border_style="yellow",
+        title="[bold yellow]ℹ️ Info[/bold yellow]"
+    ))
+    console.print()
+    
+    with Progress(
+        SpinnerColumn(spinner_name="point"),
+        TextColumn("[bold magenta]{task.description}[/bold magenta]"),
+        BarColumn(complete_style="magenta", finished_style="green"),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🔬 Conducting deep research...", total=100)
+        
+        result = await call_api(
+            "/api/v1/research",
+            method="POST",
+            json_data={
+                "query": query,
+                "deep": True,
+                "use_ollama": USE_OLLAMA
+            },
+            timeout=300
+        )
+        
+        progress.update(task, completed=100, description="✅ Research Complete!")
+    
+    console.print()
+    
+    if result.get("status") == "error":
+        console.print(Panel(
+            f"[bold red]❌ Error[/bold red]\n\n{result.get('message')}",
+            border_style="red",
+            title="Error Details"
+        ))
+        return
+    
+    # Display comprehensive answer with enhanced formatting
+    if result.get("answer"):
+        console.print(Panel(
+            Markdown(result["answer"]),
+            title="[bold green]✨ Research Results[/bold green]",
+            border_style="green",
+            padding=(1, 2)
+        ))
+        
+        # Display sources in an enhanced table
+        if result.get("sources"):
+            sources_table = Table(
+                show_header=True,
+                header_style="bold magenta",
+                border_style="dim cyan",
+                title="[bold magenta]📖 Sources Analyzed[/bold magenta]",
+                title_style="bold magenta",
+                box=None
+            )
+            sources_table.add_column("#", style="dim cyan", width=4)
+            sources_table.add_column("Source", style="bold white")
+            sources_table.add_column("URL", style="blue underline", overflow="fold")
+            
+            for i, src in enumerate(result["sources"], 1):
+                title = src.get('title', 'Untitled Source')
+                url = src.get('url', 'N/A')
+                sources_table.add_row(f"[{i}]", title, url)
+            
+            console.print()
+            console.print(sources_table)
+    else:
+        console.print(Panel(str(result), title="Result", border_style="cyan"))
+
+async def scraper_handler(url: str):
+    """Handle URL scraping with enhanced UI"""
+    
+    # Display URL panel
+    console.print(Panel(
+        f"[bold white]{url}[/bold white]",
+        title="[bold cyan]🕷️ Target URL[/bold cyan]",
+        border_style="cyan",
+        padding=(0, 2)
+    ))
+    console.print()
+    
+    # First, profile the site with enhanced display
+    with Progress(
+        SpinnerColumn(spinner_name="arc"),
+        TextColumn("[bold yellow]{task.description}[/bold yellow]"),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🔍 Analyzing site protection...", total=None)
+        profile = await call_api("/api/v1/strategy/profile-site", method="GET", params={"url": url})
+        progress.update(task, description="✅ Analysis complete!")
+    
+    console.print()
+    
+    if profile.get("status") == "success" and profile.get("profile"):
+        prof = profile["profile"]
+        risk = prof.get("risk_level", "unknown")
+        risk_colors = {"low": "green", "medium": "yellow", "high": "red", "extreme": "bold red"}
+        risk_icons = {"low": "✅", "medium": "⚠️", "high": "🔴", "extreme": "💀"}
+        color = risk_colors.get(risk, "white")
+        icon = risk_icons.get(risk, "❓")
+        
+        # Create protection info table
+        info_table = Table(show_header=False, box=None, border_style="dim")
+        info_table.add_column("Property", style="bold cyan", width=20)
+        info_table.add_column("Value", style="white")
+        
+        info_table.add_row("Risk Level", f"[{color}]{icon} {risk.upper()}[/{color}]")
+        info_table.add_row("Strategy", f"[cyan]{prof.get('recommended_strategy', 'stealth')}[/cyan]")
+        info_table.add_row("Protection", f"[yellow]{prof.get('protection', 'None detected')}[/yellow]")
+        
+        console.print(Panel(
+            info_table,
+            title="[bold yellow]🛡️ Protection Analysis[/bold yellow]",
+            border_style="yellow",
+            padding=(1, 2)
+        ))
+        console.print()
+    
+    # Scrape with protected-scrape endpoint
+    with Progress(
+        SpinnerColumn(spinner_name="dots"),
+        TextColumn("[bold cyan]{task.description}[/bold cyan]"),
+        BarColumn(complete_style="cyan", finished_style="green"),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🕷️ Scraping with stealth mode...", total=None)
+        
+        result = await call_api(
+            "/api/v1/protected-scrape",
+            method="POST",
+            params={"url": url, "instruction": "Extract main content"}
+        )
+        
+        progress.update(task, description="✅ Scraping complete!")
+    
+    console.print()
+    
+    if result.get("status") == "success":
+        # Extract content
+        content = None
+        if result.get("result", {}).get("data"):
+            content = str(result["result"]["data"])
+        elif result.get("content"):
+            content = result["content"]
+        
+        if content:
+            content_length = result.get('content_length', len(content))
+            
+            # Success panel with stats
+            stats_grid = Table.grid(padding=(0, 2))
+            stats_grid.add_column(style="bold green")
+            stats_grid.add_column(style="white")
+            stats_grid.add_row("✅ Status:", "Success")
+            stats_grid.add_row("📏 Length:", f"{content_length:,} characters")
+            stats_grid.add_row("🎯 Method:", "Stealth Scraping")
+            
+            console.print(Panel(
+                stats_grid,
+                title="[bold green]✨ Scraping Results[/bold green]",
+                border_style="green"
+            ))
+            console.print()
+            
+            # Display content (escape markup to prevent conflicts)
+            display_content = content[:2000] if len(content) > 2000 else content
+            
+            # Add truncation notice if needed
+            if len(content) > 2000:
+                console.print(Panel(
+                    display_content,
+                    title="[bold cyan]📄 Extracted Content (First 2000 chars)[/bold cyan]",
+                    border_style="cyan",
+                    padding=(1, 2),
+                    markup=False  # Disable markup parsing
+                ))
+                console.print("[dim italic]... (content truncated for display, full content extracted)[/dim italic]")
+            else:
+                console.print(Panel(
+                    display_content,
+                    title="[bold cyan]📄 Extracted Content[/bold cyan]",
+                    border_style="cyan",
+                    padding=(1, 2),
+                    markup=False  # Disable markup parsing
+                ))
+    else:
+        console.print(Panel(
+            f"[bold yellow]⚠️ Scraping Failed[/bold yellow]\n\n{result.get('message', 'Unknown error')}",
+            border_style="yellow",
+            title="Warning"
+        ))
+
+async def site_analyzer_handler(url: str):
+    """Analyze site protection and structure with enhanced UI"""
+    
+    # Display URL panel
+    console.print(Panel(
+        f"[bold white]{url}[/bold white]",
+        title="[bold magenta]🔍 Analyzing Site[/bold magenta]",
+        border_style="magenta",
+        padding=(0, 2)
+    ))
+    console.print()
+    
+    with Progress(
+        SpinnerColumn(spinner_name="bouncingBar"),
+        TextColumn("[bold magenta]{task.description}[/bold magenta]"),
+        BarColumn(complete_style="magenta"),
+        TimeElapsedColumn(),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("🔬 Profiling site security...", total=None)
+        
+        result = await call_api("/api/v1/strategy/profile-site", method="GET", params={"url": url})
+        
+        progress.update(task, description="✅ Analysis complete!")
+    
+    console.print()
+    
+    if result.get("status") == "success" and result.get("profile"):
+        prof = result["profile"]
+        
+        risk = prof.get("risk_level", "unknown")
+        risk_colors = {"low": "green", "medium": "yellow", "high": "red", "extreme": "bold red"}
+        risk_icons = {"low": "✅", "medium": "⚠️", "high": "🔴", "extreme": "💀"}
+        color = risk_colors.get(risk, "white")
+        icon = risk_icons.get(risk, "❓")
+        
+        # Create comprehensive analysis table
+        analysis_table = Table(
+            show_header=True,
+            header_style="bold magenta",
+            border_style="cyan",
+            title=f"[bold magenta]🛡️ Site Protection Profile[/bold magenta]",
+            box=None
+        )
+        analysis_table.add_column("Property", style="bold cyan", width=25)
+        analysis_table.add_column("Value", style="white", width=40)
+        analysis_table.add_column("Status", style="bold", width=15)
+        
+        # Risk level with icon
+        analysis_table.add_row(
+            "🎯 Risk Level",
+            f"[{color}]{risk.upper()}[/{color}]",
+            f"[{color}]{icon}[/{color}]"
+        )
+        
+        # Protection type
+        protection = prof.get("protection", "None detected")
+        protection_color = "red" if protection.lower() != "none" else "green"
+        analysis_table.add_row(
+            "🛡️ Protection",
+            f"[{protection_color}]{protection}[/{protection_color}]",
+            "🔒" if protection.lower() != "none" else "🔓"
+        )
+        
+        # JavaScript requirement
+        needs_js = prof.get("needs_rendering", False)
+        analysis_table.add_row(
+            "⚙️ JavaScript Required",
+            f"[yellow]Yes[/yellow]" if needs_js else "[green]No[/green]",
+            "⚡" if needs_js else "✅"
+        )
+        
+        # Recommended strategy
+        strategy = prof.get("recommended_strategy", "stealth")
+        strategy_colors = {"lightweight": "green", "stealth": "yellow", "ultra_stealth": "red"}
+        strategy_color = strategy_colors.get(strategy, "cyan")
+        analysis_table.add_row(
+            "🎯 Recommended Strategy",
+            f"[{strategy_color}]{strategy.replace('_', ' ').title()}[/{strategy_color}]",
+            "🚀"
+        )
+        
+        # Scraping feasibility
+        can_scrape = risk in ["low", "medium"]
+        analysis_table.add_row(
+            "✅ Scraping Feasibility",
+            "[green]Possible[/green]" if can_scrape else "[yellow]Difficult[/yellow]",
+            "✅" if can_scrape else "⚠️"
+        )
+        
+        console.print(Panel(
+            analysis_table,
+            border_style="magenta",
+            padding=(1, 2)
+        ))
+        
+        # Add recommendation panel
+        if risk == "low":
+            rec_text = "[green]✅ This site is easy to scrape. Standard methods will work.[/green]"
+            rec_style = "green"
+        elif risk == "medium":
+            rec_text = "[yellow]⚠️ Moderate protection. Use stealth mode for best results.[/yellow]"
+            rec_style = "yellow"
+        elif risk == "high":
+            rec_text = "[red]🔴 Strong protection. Ultra-stealth mode required.[/red]"
+            rec_style = "red"
+        else:
+            rec_text = "[bold red]💀 Extreme protection. Scraping may be very difficult.[/bold red]"
+            rec_style = "red"
+        
+        console.print()
+        console.print(Panel(
+            rec_text,
+            title="[bold white]💡 Recommendation[/bold white]",
+            border_style=rec_style,
+            padding=(0, 2)
+        ))
+    else:
+        console.print(Panel(
+            f"[bold yellow]⚠️ Analysis Failed[/bold yellow]\n\n{result.get('message', 'Unknown error')}",
+            border_style="yellow",
+            title="Warning"
+        ))
+
+async def system_status_handler():
+    """Display system health and metrics with enhanced UI"""
+    
+    with Progress(
+        SpinnerColumn(spinner_name="simpleDotsScrolling"),
+        TextColumn("[bold cyan]{task.description}[/bold cyan]"),
+        console=console,
+        transient=True
+    ) as progress:
+        task = progress.add_task("📊 Fetching system metrics...", total=None)
+        health = await call_api("/api/v1/system/health", method="GET")
+        progress.update(task, description="✅ Metrics retrieved!")
+    
+    console.print()
+    
+    if health.get("status") == "error":
+        console.print(Panel(
+            f"[bold red]❌ Error[/bold red]\n\n{health.get('message')}",
+            border_style="red",
+            title="Error"
+        ))
+        return
+    
+    # Overall status with large indicator
+    status = health.get("status", "unknown")
+    status_colors = {"healthy": "green", "degraded": "yellow", "unhealthy": "red"}
+    status_icons = {"healthy": "✅", "degraded": "⚠️", "unhealthy": "❌"}
+    color = status_colors.get(status, "white")
+    icon = status_icons.get(status, "❓")
+    
+    # Create overall health panel
+    health_text = f"[bold {color}]{icon} SYSTEM STATUS: {status.upper()}[/bold {color}]"
+    console.print(Panel(
+        health_text,
+        border_style=color,
+        padding=(1, 2),
+        title="[bold white]🏥 System Health[/bold white]"
+    ))
+    console.print()
+    
+    # Create detailed components table
+    components_table = Table(
+        show_header=True,
+        header_style="bold cyan",
+        border_style="dim",
+        title="[bold cyan]🔧 Components Status[/bold cyan]",
+        box=None
+    )
+    components_table.add_column("Component", style="bold white", width=25)
+    components_table.add_column("Status", width=20)
+    components_table.add_column("Details", style="dim", overflow="fold")
+    
+    # Components
+    for name, comp in health.get("components", {}).items():
+        comp_status = comp.get("status", "unknown")
+        comp_colors = {"healthy": "green", "degraded": "yellow", "unhealthy": "red"}
+        comp_icons = {"healthy": "●", "degraded": "◐", "unhealthy": "○"}
+        c = comp_colors.get(comp_status, "white")
+        ic = comp_icons.get(comp_status, "?")
+        
+        # Component icon mapping
+        component_icons = {
+            "backend": "🔌",
+            "playwright": "🎭",
+            "database": "🗄️",
+            "cache": "💾",
+            "llm": "🧠"
+        }
+        component_icon = component_icons.get(name.lower(), "⚙️")
+        
+        components_table.add_row(
+            f"{component_icon} {name.title()}",
+            f"[{c}]{ic} {comp_status.upper()}[/{c}]",
+            comp.get("message", "Running normally")
+        )
+    
+    console.print(components_table)
+    
+    # Timestamp info
+    if health.get("timestamp"):
+        console.print()
+        console.print(Panel(
+            f"[dim]Last updated: {health['timestamp']}[/dim]",
+            border_style="dim",
+            padding=(0, 2)
+        ))
+
+# ========== MAIN LOOP ==========
+
+def interactive_mode():
+    """Main interactive loop with enhanced UI"""
+    while True:
+        choice = show_main_menu()
+        
+        if choice == "0":
+            # Enhanced exit message
+            console.print()
+            goodbye_panel = Panel(
+                "[bold cyan]Thank you for using URWA Brain! 👋[/bold cyan]\n\n"
+                "[dim]Autonomous Web Research Agent shutting down...[/dim]",
+                border_style="cyan",
+                title="[bold red]🚪 Goodbye[/bold red]",
+                padding=(1, 2)
+            )
+            console.print(goodbye_panel)
+            console.print()
+            break
+        
+        try:
+            console.print()
+            
+            if choice == "1":
+                # Master AI Mode - THE SMART ONE
+                console.print(Panel(
+                    "[bold yellow]🤖 Master AI Mode[/bold yellow]\n[dim]Tell me anything - I'll figure out what you need![/dim]\n\n"
+                    "[dim italic]Examples:[/dim italic]\n"
+                    "[dim]• Compare these two Amazon products...[/dim]\n"
+                    "[dim]• Scrape this URL and give insights...[/dim]\n"
+                    "[dim]• Find me 50 companies with low prices...[/dim]\n"
+                    "[dim]• What's the latest news on AI?[/dim]",
+                    border_style="yellow",
+                    padding=(1, 2)
+                ))
+                console.print()
+                query = Prompt.ask("[bold yellow]┃[/bold yellow] [bold white]What would you like me to do?[/bold white]")
+                if query.strip():
+                    asyncio.run(master_ai_handler(query))
+            
+            elif choice == "2":
+                # Chat Mode
+                console.print(Panel(
+                    "[bold white]💬 Chat Mode[/bold white]\n[dim]Ask me anything and get AI-powered answers[/dim]",
+                    border_style="cyan",
+                    padding=(0, 2)
+                ))
+                console.print()
+                query = Prompt.ask("[bold cyan]┃[/bold cyan] [bold white]Your question[/bold white]")
+                if query.strip():
+                    asyncio.run(chat_mode_handler(query))
+            
+            elif choice == "3":
+                # Deep Research
+                console.print(Panel(
+                    "[bold white]📚 Deep Research Mode[/bold white]\n[dim]Comprehensive multi-source analysis[/dim]",
+                    border_style="magenta",
+                    padding=(0, 2)
+                ))
+                console.print()
+                query = Prompt.ask("[bold magenta]┃[/bold magenta] [bold white]Research topic[/bold white]")
+                if query.strip():
+                    asyncio.run(deep_research_handler(query))
+            
+            elif choice == "4":
+                # Scraper
+                console.print(Panel(
+                    "[bold white]🕷️ Scraper Tool[/bold white]\n[dim]Extract content from any website[/dim]",
+                    border_style="cyan",
+                    padding=(0, 2)
+                ))
+                console.print()
+                url = Prompt.ask("[bold cyan]┃[/bold cyan] [bold white]Target URL[/bold white]")
+                if url.strip():
+                    asyncio.run(scraper_handler(url))
+            
+            elif choice == "5":
+                # Site Analyzer
+                console.print(Panel(
+                    "[bold white]🔍 Site Analyzer[/bold white]\n[dim]Analyze website protection and structure[/dim]",
+                    border_style="magenta",
+                    padding=(0, 2)
+                ))
+                console.print()
+                url = Prompt.ask("[bold magenta]┃[/bold magenta] [bold white]URL to analyze[/bold white]")
+                if url.strip():
+                    asyncio.run(site_analyzer_handler(url))
+            
+            elif choice == "6":
+                # System Status
+                console.print(Panel(
+                    "[bold white]📊 System Status[/bold white]\n[dim]Monitor system health and metrics[/dim]",
+                    border_style="cyan",
+                    padding=(0, 2)
+                ))
+                console.print()
+                asyncio.run(system_status_handler())
+        
+        except KeyboardInterrupt:
+            console.print("\n")
+            console.print(Panel(
+                "[yellow]⚠️ Operation cancelled by user[/yellow]",
+                border_style="yellow",
+                padding=(0, 2)
+            ))
+        except Exception as e:
+            console.print("\n")
+            console.print(Panel(
+                f"[bold red]❌ Error[/bold red]\n\n[white]{str(e)}[/white]",
+                border_style="red",
+                title="Error Details",
+                padding=(1, 2)
+            ))
+        
+        # Enhanced return prompt
+        console.print()
+        console.print("[dim]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/dim]")
+        Prompt.ask("[bold cyan]┃[/bold cyan] [dim]Press Enter to return to menu[/dim]", default="")
+        console.clear()
+        print_banner()
+
+async def site_analyzer_handler(url: str):
+    """Analyze site protection and structure"""
+    console.print(f"\n[cyan]Analyzing: {url}[/cyan]\n")
     
     with Progress(
         SpinnerColumn(),
@@ -173,724 +1196,143 @@ async def execute_task(task_type: str, query: str):
         TimeElapsedColumn(),
         console=console
     ) as progress:
-        task = progress.add_task(f"[dim]Executing {task_type}...[/dim]", total=None)
-        result = await URWAClient.request(endpoint, params=params)
-        progress.update(task, completed=True)
+        task = progress.add_task("[dim]Profiling site...[/dim]", total=None)
         
-    # Render Output
-    console.print()
-    if result.get("status") == "error":
-        console.print(f"[red]Error:[/red] {result.get('message')}")
-        return
-
-    # Intelligent Parsing based on Result Structure
+        result = await call_api("/api/v1/strategy/profile-site", method="GET", params={"url": url})
+        
+        progress.stop()
     
-    # 1. Direct Answer (Research/Chat)
-    if result.get("answer"):
-        console.print(Panel(Markdown(result["answer"]), title="Result", border_style="green"))
+    console.print()
+    
+    if result.get("status") == "success" and result.get("profile"):
+        prof = result["profile"]
         
-        if result.get("sources"):
-            console.print("\n[bold]Sources:[/bold]")
-            for src in result["sources"][:5]:
-                console.print(f"- [link={src.get('url')}]{src.get('title') or src.get('url')}[/link]")
-                
-    # 2. Agent Result (Scrape/Analyze)
-    elif result.get("result"):
-        res_data = result["result"]
+        # Display analysis table
+        table = Table(title="Site Analysis", border_style="cyan")
+        table.add_column("Property", style="bold")
+        table.add_column("Value")
         
-        # If it's structured data
-        if res_data.get("extracted_data"):
-            console.print(Panel(Markdown(str(res_data["extracted_data"])), title="Extracted Data", border_style="cyan"))
+        risk = prof.get("risk_level", "unknown")
+        risk_colors = {"low": "[green]", "medium": "[yellow]", "high": "[red]", "extreme": "[bold red]"}
+        risk_color = risk_colors.get(risk, "")
         
-        # If it's just raw content
-        elif res_data.get("content"):
-            content = res_data["content"]
-            if len(content) > 1000:
-                 content = content[:1000] + "\n...(truncated)..."
-            console.print(Panel(content, title="Extracted Content", border_style="cyan"))
-            
-        # Analysis result
-        elif res_data.get("analysis"):
-             console.print(Panel(Markdown(res_data["analysis"]), title="Analysis", border_style="magenta"))
-             
-    # 3. Fallback
+        table.add_row("Risk Level", f"{risk_color}{risk.upper()}[/]")
+        table.add_row("Protection", prof.get("protection", "Unknown"))
+        table.add_row("Needs JavaScript", "Yes" if prof.get("needs_rendering") else "No")
+        table.add_row("Recommended Strategy", prof.get("recommended_strategy", "stealth"))
+        table.add_row("Can Scrape", "[green]✓ Yes[/]" if risk in ["low", "medium"] else "[yellow]⚠ Difficult[/]")
+        
+        console.print(table)
     else:
-        console.print(result)
+        console.print(Panel(f"[yellow]{result.get('message', 'Analysis failed')}[/yellow]", border_style="yellow"))
 
-async def system_status():
-    """Show system health stats"""
+async def system_status_handler():
+    """Display system health and metrics"""
     console.print("[cyan]Fetching system status...[/cyan]")
     
-    health = await URWAClient.request("/api/v1/system/health", method="GET")
-    metrics = await URWAClient.request("/api/v1/system/metrics", method="GET")
+    health = await call_api("/api/v1/system/health", method="GET")
     
-    table = Table(title="System Status")
-    table.add_column("Component")
+    if health.get("status") == "error":
+        console.print(Panel(f"[red]{health.get('message')}[/red]", border_style="red"))
+        return
+    
+    # Create status table
+    table = Table(title="System Status", border_style="cyan")
+    table.add_column("Component", style="bold")
     table.add_column("Status")
     table.add_column("Details")
     
-    # Health
+    # Overall status
     status = health.get("status", "unknown")
-    color = "green" if status == "healthy" else "red"
+    color = "green" if status == "healthy" else "yellow" if status == "degraded" else "red"
     table.add_row("Overall Health", f"[{color}]{status.upper()}[/{color}]", "")
     
     # Components
     for name, comp in health.get("components", {}).items():
         comp_status = comp.get("status", "unknown")
-        c = "green" if comp_status == "healthy" else "red"
+        c = "green" if comp_status == "healthy" else "yellow" if comp_status == "degraded" else "red"
         table.add_row(f"  - {name}", f"[{c}]{comp_status}[/{c}]", comp.get("message", ""))
-        
-    # Metrics
-    if metrics.get("uptime_seconds"):
-        uptime = round(metrics["uptime_seconds"] / 3600, 2)
-        table.add_row("Uptime", "", f"{uptime} hours")
-        
+    
+    # Uptime
+    if health.get("timestamp"):
+        table.add_row("Timestamp", "", health["timestamp"])
+    
     console.print(table)
 
+# ========== MAIN LOOP ==========
+
 def interactive_mode():
-    """Main Menu Loop"""
+    """Main interactive loop"""
     while True:
-        console.print("[bold cyan][::] Select An Action For Your Agent [::][/bold cyan]\n")
+        choice = show_main_menu()
         
-        # Grid Menu Style
-        console.print("""
-[bold white][01][/bold white] [cyan]Chat Mode[/cyan]        [bold white][04][/bold white] [cyan]Site Analyzer[/cyan]
-[bold white][02][/bold white] [cyan]Deep Research[/cyan]    [bold white][05][/bold white] [cyan]System Status[/cyan]
-[bold white][03][/bold white] [cyan]Scraper Tool[/cyan]     [bold white][00][/bold white] [cyan]Exit[/cyan]
-        """)
-        
-        choice = Prompt.ask("[bold cyan][::] Select Option[/bold cyan]", choices=["01", "1", "02", "2", "03", "3", "04", "4", "05", "5", "00", "0"], default="01")
-        
-        # Normalize choice (01 -> 1)
-        if choice.startswith("0") and len(choice) > 1:
-            choice = choice[1]
-            
         if choice == "0":
             console.print("\n[red][-] Exiting...[/red]")
-            sys.exit(0)
-            
-        elif choice == "5":
-            asyncio.run(system_status())
-            
-            # Pause effect
-            console.print("\nPress Enter to return...")
-            input()
-            console.clear()
-            print_banner()
-            continue
-            
-        task_map = {"1": "chat", "2": "research", "3": "scrape", "4": "analyze"}
-        task = task_map.get(choice, "chat")
+            break
         
-        q_prompt = {
-            "chat": "Ask me anything",
-            "research": "What should I research?",
-            "scrape": "Enter URL to scrape",
-            "analyze": "Enter URL to analyze"
-        }
+        try:
+            if choice == "1":
+                # Chat Mode
+                console.print("\n[yellow][*] Loading CHAT module...[/yellow]")
+                query = Prompt.ask("[green][?] Ask me anything[/green]")
+                if query.strip():
+                    asyncio.run(chat_mode_handler(query))
+            
+            elif choice == "2":
+                # Deep Research
+                console.print("\n[yellow][*] Loading RESEARCH module...[/yellow]")
+                query = Prompt.ask("[green][?] What should I research?[/green]")
+                if query.strip():
+                    asyncio.run(deep_research_handler(query))
+            
+            elif choice == "3":
+                # Scraper
+                console.print("\n[yellow][*] Loading SCRAPER module...[/yellow]")
+                url = Prompt.ask("[green][?] Enter URL to scrape[/green]")
+                if url.strip():
+                    asyncio.run(scraper_handler(url))
+            
+            elif choice == "4":
+                # Site Analyzer
+                console.print("\n[yellow][*] Loading ANALYZER module...[/yellow]")
+                url = Prompt.ask("[green][?] Enter URL to analyze[/green]")
+                if url.strip():
+                    asyncio.run(site_analyzer_handler(url))
+            
+            elif choice == "5":
+                # System Status
+                asyncio.run(system_status_handler())
         
-        console.print(f"\n[yellow][*] Loading {task.upper()} module...[/yellow]")
-        query = Prompt.ask(f"[green][?] {q_prompt[task]}[/green]")
-        asyncio.run(execute_task(task, query))
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Operation cancelled[/yellow]")
+        except Exception as e:
+            console.print(f"\n[red]Error: {e}[/red]")
         
-        # Return to menu logic
-        console.print("\nPress Enter to return...")
+        # Return to menu
+        console.print("\n[dim]Press Enter to return...[/dim]")
         input()
         console.clear()
         print_banner()
 
 def main():
-    # Handle "urwa sans start" arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("args", nargs="*", help="Arguments")
-    args = parser.parse_args()
-    
-    # Check for specific command signature "sans start" or just run smoothly
-    if len(args.args) >= 1:
-        # If user typed 'urwa sans start', args might be ['sans', 'start']
-        # We just proceed. 
-        pass
-
+    """Main entry point"""
     console.clear()
     print_banner()
     
+    # Check services
     check_services()
     
-    # Interactive Mode
+    # Start interactive mode
     interactive_mode()
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        console.print("\n[yellow]Goodbye![/yellow]")
-
-
-
-def chat_mode():
-    """Interactive chat mode."""
-    console.print("\n[bold cyan]═══ CHAT MODE ═══[/bold cyan]")
-    console.print("[dim]Type your questions. Type 'exit' to go back to menu.[/dim]\n")
-    
-    while True:
-        try:
-            query = Prompt.ask("[bold green]You[/bold green]")
-            
-            if query.lower() in ['exit', 'quit', 'q', 'back']:
-                break
-            
-            if not query.strip():
-                continue
-            
-            # Run the query
-            asyncio.run(run_agent_query(query, mode="chat"))
-            console.print()
-            
-        except KeyboardInterrupt:
-            break
-    
-    console.print("[yellow]Exiting chat mode...[/yellow]")
-
-
-def scrape_mode():
-    """URL scraping mode - Full power with protected site support."""
-    console.print("\n[bold cyan]═══ SCRAPE MODE ═══[/bold cyan]")
-    console.print("[dim]Enter a URL to scrape. Supports protected sites with advanced bypass.[/dim]")
-    console.print("[dim]Type 'exit' to go back.[/dim]\n")
-    
-    url = Prompt.ask("[bold green]URL[/bold green]")
-    
-    if url.lower() in ['exit', 'quit', 'q']:
-        return
-    
-    instruction = Prompt.ask(
-        "[bold green]What to extract[/bold green]",
-        default="Extract all main content"
-    )
-    
-    # Use the protected-scrape endpoint for full power
-    console.print(f"\n[cyan]Scraping with full power: {url}[/cyan]\n")
-    
-    use_ollama = os.environ.get("USE_OLLAMA") == "true"
-    
-    async def do_scrape():
-        import aiohttp
-        
-        base_url = "http://localhost:8000"
-        
-        # Convert booleans to strings
-        params = {
-            "url": url,
-            "instruction": instruction
-        }
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                # First, profile the site to show protection level
-                console.print("[dim]Analyzing site protection...[/dim]")
-                
-                async with session.get(
-                    f"{base_url}/api/v1/strategy/profile-site",
-                    params={"url": url},
-                    timeout=aiohttp.ClientTimeout(total=30)
-                ) as resp:
-                    profile = await resp.json()
-                    
-                    risk = profile.get("risk", "unknown")
-                    protection = profile.get("protection", "none")
-                    strategy = profile.get("recommended_strategy", "stealth")
-                    
-                    risk_colors = {"low": "green", "medium": "yellow", "high": "red", "extreme": "bold red"}
-                    color = risk_colors.get(risk, "white")
-                    
-                    console.print(f"  Risk Level: [{color}]{risk.upper()}[/{color}]")
-                    console.print(f"  Protection: {protection}")
-                    console.print(f"  Strategy: {strategy}")
-                    console.print()
-                
-                # Now do the actual scrape with protected-scrape endpoint
-                console.print("[dim]Scraping with advanced bypass...[/dim]")
-                
-                with Progress(
-                    SpinnerColumn(),
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(),
-                    TimeElapsedColumn(),
-                    console=console
-                ) as progress:
-                    task = progress.add_task("[cyan]Scraping...", total=None)
-                    
-                    async with session.post(
-                        f"{base_url}/api/v1/protected-scrape",
-                        params=params,
-                        timeout=aiohttp.ClientTimeout(total=180)
-                    ) as resp:
-                        result = await resp.json()
-                    
-                    progress.update(task, description="[green]Complete!")
-                
-                # Display results
-                console.print()
-                
-                if result.get("status") == "success":
-                    console.print(Panel("[green]Scrape Successful![/green]", border_style="green"))
-                    
-                    # Content can be in result.result.content OR result.content
-                    content = None
-                    res = result.get("result", {})
-                    
-                    # Check nested result first
-                    if res and res.get("content"):
-                        content = res["content"]
-                    # Check top-level content (from fallback scraping)
-                    elif result.get("content"):
-                        content = result["content"]
-                    
-                    if content:
-                        console.print("\n[bold cyan]Scraped Content:[/bold cyan]\n")
-                        if len(content) > 3000:
-                            content = content[:3000] + "\n\n[dim]... (truncated, full content available via API)[/dim]"
-                        console.print(Markdown(content))
-                    
-                    # Show message if available
-                    if result.get("message"):
-                        console.print(f"\n[dim]{result['message']}[/dim]")
-                    
-                    # Show structured data if available
-                    if res and res.get("structured_data"):
-                        console.print("\n[bold cyan]Structured Data:[/bold cyan]")
-                        console.print(f"{res['structured_data']}")
-                    
-                    # Show entities if available
-                    if res and res.get("entities"):
-                        console.print("\n[bold cyan]Entities Found:[/bold cyan]")
-                        for entity in res["entities"][:10]:
-                            console.print(f"  • {entity.get('name', entity.get('title', 'N/A'))}")
-                    
-                    console.print(f"\n[dim]Content length: {result.get('content_length', len(content) if content else 0)} characters[/dim]")
-                else:
-                    console.print(Panel(f"[yellow]Status: {result.get('status', 'unknown')}[/yellow]", border_style="yellow"))
-                    if result.get("message"):
-                        console.print(f"[dim]{result['message']}[/dim]")
-                    
-                    # Suggest alternatives
-                    console.print("\n[bold cyan]Suggestions:[/bold cyan]")
-                    console.print("  • Try a more specific URL (e.g., /list-of-companies instead of homepage)")
-                    console.print("  • Use Chat Mode to research the topic instead")
-                    console.print("  • Some sites require authentication")
-                
-        except Exception as e:
-            console.print(f"[red]Error: {e}[/red]")
-    
-    asyncio.run(do_scrape())
-
-
-def research_mode():
-    """Deep research mode."""
-    console.print("\n[bold cyan]═══ RESEARCH MODE ═══[/bold cyan]")
-    console.print("[dim]Enter your research topic. Type 'exit' to go back.[/dim]\n")
-    
-    topic = Prompt.ask("[bold green]Research Topic[/bold green]")
-    
-    if topic.lower() in ['exit', 'quit', 'q']:
-        return
-    
-    asyncio.run(run_agent_query(topic, mode="research"))
-
-
-def fact_check_mode():
-    """Fact checking mode."""
-    console.print("\n[bold cyan]═══ FACT CHECK MODE ═══[/bold cyan]")
-    console.print("[dim]Enter a claim to verify. Type 'exit' to go back.[/dim]\n")
-    
-    claim = Prompt.ask("[bold green]Claim to verify[/bold green]")
-    
-    if claim.lower() in ['exit', 'quit', 'q']:
-        return
-    
-    query = f"Is it true that {claim}"
-    asyncio.run(run_agent_query(query, mode="fact_check"))
-
-
-def site_analysis_mode():
-    """Site analysis mode - Full protection profiling."""
-    console.print("\n[bold cyan]═══ SITE ANALYSIS MODE ═══[/bold cyan]")
-    console.print("[dim]Analyze any site for protection level and scraping difficulty.[/dim]")
-    console.print("[dim]Type 'exit' to go back.[/dim]\n")
-    
-    url = Prompt.ask("[bold green]URL to analyze[/bold green]")
-    
-    if url.lower() in ['exit', 'quit', 'q']:
-        return
-    
-    async def do_analysis():
-        import aiohttp
-        
-        base_url = "http://localhost:8000"
-        
-        console.print(f"\n[cyan]Analyzing: {url}[/cyan]\n")
-        
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TimeElapsedColumn(),
-            console=console
-        ) as progress:
-            task = progress.add_task("[cyan]Profiling site...", total=None)
-            
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        f"{base_url}/api/v1/strategy/profile-site",
-                        params={"url": url},
-                        timeout=aiohttp.ClientTimeout(total=60)
-                    ) as resp:
-                        result = await resp.json()
-                
-                progress.update(task, description="[green]Complete!")
-                
-            except Exception as e:
-                progress.update(task, description="[red]Failed!")
-                console.print(f"[red]Error: {e}[/red]")
-                return
-        
-        console.print()
-        
-        # Display comprehensive analysis
-        risk = result.get("risk", "unknown")
-        risk_colors = {"low": "green", "medium": "yellow", "high": "red", "extreme": "bold red"}
-        color = risk_colors.get(risk, "white")
-        
-        console.print(Panel(
-            f"[bold]Site Analysis: {url}[/bold]",
-            title="Protection Profile",
-            border_style=color.replace("bold ", "")
-        ))
-        
-        console.print(f"\n  [bold]Risk Level:[/bold] [{color}]{risk.upper()}[/{color}]")
-        console.print(f"  [bold]Protection:[/bold] {result.get('protection', result.get('bot_wall', 'none'))}")
-        console.print(f"  [bold]Bot Wall Detected:[/bold] {result.get('bot_wall', 'none')}")
-        console.print(f"  [bold]Needs JavaScript:[/bold] {'Yes' if result.get('needs_rendering') else 'No'}")
-        console.print(f"  [bold]Recommended Strategy:[/bold] {result.get('recommended_strategy', 'stealth')}")
-        
-        can_scrape = risk in ["low", "medium"]
-        console.print(f"  [bold]Can Scrape:[/bold] {'[green]✓ Yes[/green]' if can_scrape else '[yellow]⚠ Difficult[/yellow]'}")
-        
-        # Show details if available
-        details = result.get("details", {})
-        if details:
-            console.print(f"\n[bold cyan]Details:[/bold cyan]")
-            for key, value in details.items():
-                if key != "warnings":
-                    console.print(f"  • {key}: {value}")
-        
-        # Warnings
-        warnings = details.get("warnings", []) if details else []
-        if warnings:
-            console.print(f"\n[bold yellow]Warnings:[/bold yellow]")
-            for warning in warnings:
-                console.print(f"  ⚠ {warning}")
-        
-        # Recommendations
-        console.print(f"\n[bold cyan]Recommendations:[/bold cyan]")
-        strategy = result.get('recommended_strategy', 'stealth')
-        if strategy == "lightweight":
-            console.print("  ✓ This site can be scraped easily with simple HTTP requests")
-        elif strategy == "stealth":
-            console.print("  ⚠ Use Playwright stealth mode for best results")
-        elif strategy == "ultra_stealth":
-            console.print("  ⚠ Heavy protection detected - use Ultra Stealth mode")
-            console.print("  ⚠ May require multiple attempts or human intervention")
-        
-        console.print()
-    
-    asyncio.run(do_analysis())
-
-
-def system_status_mode():
-    """System status dashboard."""
-    while True:
-        console.print("\n[bold cyan]═══ SYSTEM STATUS ═══[/bold cyan]")
-        console.print("[dim]Monitor API health, stats, and costs.[/dim]\n")
-        
-        table = Table(show_header=False, box=None, padding=(0, 2))
-        table.add_row("[1] System Health", "[4] Cost & Usage")
-        table.add_row("[2] Scraper Stats", "[5] Circuit Breakers")
-        table.add_row("[3] Strategy Metrics", "[6] Recent Logs")
-        table.add_row("[0] Back to Main Menu", "")
-        
-        console.print(table)
-        
-        choice = Prompt.ask("\n[bold green]Select Option[/bold green]", choices=["0", "1", "2", "3", "4", "5", "6"], default="1")
-        
-        if choice == "0":
-            break
-            
-        async def fetch_status():
-            console.print()
-            try:
-                if choice == "1":
-                    res = await call_api("/api/v1/system/health", method="GET")
-                    console.print_json(data=res)
-                elif choice == "2":
-                    res = await call_api("/api/v1/scraper-stats", method="GET")
-                    console.print_json(data=res)
-                elif choice == "3":
-                    res = await call_api("/api/v1/strategy/stats", method="GET")
-                    console.print_json(data=res)
-                elif choice == "4":
-                    res = await call_api("/api/v1/system/cost", method="GET")
-                    console.print_json(data=res)
-                elif choice == "5":
-                    res = await call_api("/api/v1/system/circuits", method="GET")
-                    console.print_json(data=res)
-                elif choice == "6":
-                    res = await call_api("/api/v1/system/logs", params={"limit": 10}, method="GET")
-                    console.print_json(data=res)
-            except Exception as e:
-                console.print(f"[red]Error: {e}[/red]")
-            
-            Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
-
-        asyncio.run(fetch_status())
-
-
-def advanced_tools_mode():
-    """Advanced tools and utilities."""
-    while True:
-        console.print("\n[bold cyan]═══ ADVANCED TOOLS ═══[/bold cyan]")
-        
-        table = Table(show_header=False, box=None, padding=(0, 2))
-        table.add_row("[1] Browser Profiles", "[4] Compliance Check")
-        table.add_row("[2] Human Task Queue", "[5] Clear Scraper Cache")
-        table.add_row("[3] Data Normalizer", "[6] Reset Strategy AI")
-        table.add_row("[0] Back to Main Menu", "")
-        
-        console.print(table)
-        
-        choice = Prompt.ask("\n[bold green]Select Option[/bold green]", choices=["0", "1", "2", "3", "4", "5", "6"], default="1")
-        
-        if choice == "0":
-            break
-            
-        async def run_tool():
-            console.print()
-            try:
-                if choice == "1":
-                    res = await call_api("/api/v1/browser-profiles", method="GET")
-                    console.print_json(data=res)
-                elif choice == "2":
-                    res = await call_api("/api/v1/human-queue", method="GET")
-                    console.print_json(data=res)
-                elif choice == "3":
-                    console.print("[dim]Normalize data into structured formats.[/dim]")
-                    dtype = Prompt.ask("Data Type", choices=["price", "date", "location", "company", "rating", "phone"])
-                    val = Prompt.ask("Raw Value")
-                    res = await call_api("/api/v1/normalize", params={"data_type": dtype, "value": val}, method="POST")
-                    console.print_json(data=res)
-                elif choice == "4":
-                    url = Prompt.ask("URL to check")
-                    res = await call_api("/api/v1/strategy/compliance-check", params={"url": url}, method="GET")
-                    console.print_json(data=res)
-                elif choice == "5":
-                    if Prompt.ask("Clear scraper cache?", choices=["y", "n"], default="n") == "y":
-                        res = await call_api("/api/v1/scraper-cache/clear", method="POST")
-                        console.print(f"[green]{res.get('message', 'Done')}[/green]")
-                elif choice == "6":
-                    if Prompt.ask("Clear ALL strategy learning data? (Resets intelligence)", choices=["y", "n"], default="n") == "y":
-                        res = await call_api("/api/v1/strategy/clear", method="POST")
-                        console.print(f"[green]{res.get('message', 'Done')}[/green]")
-            except Exception as e:
-                console.print(f"[red]Error: {e}[/red]")
-            
-            Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
-
-        asyncio.run(run_tool())
-
-
-def start_api_server():
-    """Start the API server in the current terminal (blocking)."""
-    console.print("\n[bold cyan]Starting API Server...[/bold cyan]")
-    console.print("[dim]Press Ctrl+C to stop[/dim]\n")
-    
-    backend_path = Path(__file__).parent.parent / "backend"
-    run_script = backend_path / "run.py"
-    
-    try:
-        subprocess.run([sys.executable, str(run_script)], cwd=str(backend_path))
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Server stopped.[/yellow]")
-
-
-def start_api_server_background():
-    """Start API server in a NEW terminal window (non-blocking)."""
-    backend_path = Path(__file__).parent.parent / "backend"
-    run_script = backend_path / "run.py"
-    venv_python = sys.executable
-    
-    console.print("\n[cyan]Starting API server in a new terminal window...[/cyan]")
-    
-    if sys.platform == "win32":
-        # Windows: Open new cmd window with activated venv
-        venv_activate = Path(__file__).parent.parent / "venv" / "Scripts" / "activate.bat"
-        cmd = f'start "URWA Brain API Server" cmd /k "cd /d {backend_path} && call {venv_activate} && python run.py"'
-        subprocess.Popen(cmd, shell=True, cwd=str(backend_path))
-    else:
-        # Linux/Mac: Open new terminal
-        cmd = f'cd {backend_path} && source ../venv/bin/activate && python run.py'
-        # Try different terminal emulators
-        terminals = [
-            ["gnome-terminal", "--", "bash", "-c", cmd],
-            ["xterm", "-e", f"bash -c '{cmd}'"],
-            ["konsole", "-e", f"bash -c '{cmd}'"],
-        ]
-        for term_cmd in terminals:
-            try:
-                subprocess.Popen(term_cmd)
-                break
-            except FileNotFoundError:
-                continue
-    
-    # Wait for server to start
-    console.print("[dim]Waiting for server to start...[/dim]")
-    for i in range(15):  # Wait up to 15 seconds
-        time.sleep(1)
-        if check_api_server():
-            console.print("[green]✓[/green] API Server started successfully!")
-            return True
-    
-    console.print("[red]✗[/red] Server failed to start. Please check the new terminal window for errors.")
-    return False
-
-
-def check_api_server() -> bool:
-    """Check if FastAPI server is running."""
-    import requests
-    try:
-        resp = requests.get("http://localhost:8000/health", timeout=3)
-        return resp.status_code == 200
-    except:
-        return False
-
-
-def main():
-    """Main entry point."""
-    print_banner()
-    
-    # System checks
-    console.print("\n[bold cyan]System Check[/bold cyan]\n")
-    
-    if not check_python_version():
-        return
-    
-    # Check virtual environment
-    if not check_venv():
-        if Confirm.ask("Create virtual environment?", default=True):
-            if not create_venv():
-                return
-            return  # User needs to activate venv
-    
-    # Check/install requirements
-    try:
-        from rich.progress import Progress
-        console.print("[green]✓[/green] Dependencies available")
-    except:
-        if Confirm.ask("Install dependencies?", default=True):
-            if not install_requirements():
-                return
-    
-    # Check Playwright
-    try:
-        import playwright
-        console.print("[green]✓[/green] Playwright available")
-    except:
-        if Confirm.ask("Install Playwright browser?", default=True):
-            install_playwright()
-    
-    # Check API Server
-    console.print("\n[bold cyan]API Server Check[/bold cyan]\n")
-    
-    if check_api_server():
-        console.print("[green]✓[/green] API Server running at http://localhost:8000")
-    else:
-        console.print("[yellow]![/yellow] API Server not running")
-        console.print("\n[dim]The CLI requires the FastAPI server to be running.[/dim]")
-        
-        if Confirm.ask("Start API server in a new window?", default=True):
-            if not start_api_server_background():
-                console.print("[yellow]Please start the API server manually and try again.[/yellow]")
-                return
-            # Server started, continue to menu
-        else:
-            console.print("\n[dim]To start manually, open another terminal and run:[/dim]")
-            console.print("  [cyan]cd backend[/cyan]")
-            console.print("  [cyan]python run.py[/cyan]\n")
-            console.print("[yellow]Please start the API server and try again.[/yellow]")
-            return
-    
-    # Show LLM status from API
-    try:
-        import requests
-        resp = requests.get("http://localhost:8000/", timeout=3)
-        data = resp.json()
-        console.print(f"[green]✓[/green] URWA Brain v{data.get('version', '?')} Online")
-    except:
-        pass
-    
-    # LLM Selection
-    console.print("\n[bold cyan]LLM Selection[/bold cyan]\n")
-    console.print("  [1] Cloud LLM (Gemini/Groq) - Faster, requires API keys")
-    console.print("  [2] Local LLM (Ollama) - Private, requires Ollama running")
-    
-    llm_choice = Prompt.ask("Select LLM", choices=["1", "2"], default="1")
-    
-    if llm_choice == "2":
-        # Check if Ollama is available
-        try:
-            import requests
-            resp = requests.get("http://localhost:11434/api/tags", timeout=5)
-            if resp.status_code == 200:
-                os.environ["USE_OLLAMA"] = "true"
-                console.print("[green]✓[/green] Using Local Ollama LLM")
-            else:
-                console.print("[yellow]![/yellow] Ollama not responding, using Cloud LLM")
-                os.environ["USE_OLLAMA"] = "false"
-        except:
-            console.print("[yellow]![/yellow] Ollama not available, using Cloud LLM")
-            os.environ["USE_OLLAMA"] = "false"
-    else:
-        os.environ["USE_OLLAMA"] = "false"
-        console.print("[green]✓[/green] Using Cloud LLM (Gemini/Groq)")
-    
-    # Main loop
-    while True:
-        choice = show_main_menu()
-        
-        if choice == "0":
-            console.print("\n[cyan]Goodbye! 👋[/cyan]\n")
-            break
-        elif choice == "1":
-            chat_mode()
-        elif choice == "2":
-            scrape_mode()
-        elif choice == "3":
-            research_mode()
-        elif choice == "4":
-            fact_check_mode()
-        elif choice == "5":
-            site_analysis_mode()
-        elif choice == "6":
-            system_status_mode()
-        elif choice == "7":
-            advanced_tools_mode()
-        elif choice == "8":
-            start_api_server()
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        console.print("\n[cyan]Goodbye! 👋[/cyan]\n")
+        console.print("\n[cyan]Goodbye! 👋[/cyan]")
         sys.exit(0)
+    except Exception as e:
+        # Print error without markup to avoid Rich formatting issues
+        console.print("\n[red]Fatal Error:[/red]")
+        console.print(str(e), style="red", markup=False)
+        sys.exit(1)
