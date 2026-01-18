@@ -1,2 +1,5 @@
-/assets/*
+/assets/*.js
   Content-Type: text/javascript
+
+/assets/*.css
+  Content-Type: text/css
