@@ -4,6 +4,8 @@ Supports phi3:mini and llama3.2-vision for offline processing
 """
 import json
 import asyncio
+import subprocess
+import time
 from typing import Dict, List, Optional
 from loguru import logger
 import requests
@@ -34,7 +36,30 @@ class OllamaProcessor:
             return False
         except Exception as e:
             logger.warning(f"Ollama not available: {e}")
+            # Try to start Ollama
+            self._start_ollama()
+            time.sleep(5)  # Wait for Ollama to start
+            # Check again
+            try:
+                response = requests.get(f"{self.base_url}/api/tags", timeout=5)
+                if response.status_code == 200:
+                    models = response.json().get("models", [])
+                    available_models = [m["name"] for m in models]
+                    if any(self.model in m for m in available_models):
+                        logger.info(f"Ollama started successfully. Models: {available_models}")
+                        return True
+            except:
+                pass
+            logger.error("Failed to start Ollama")
             return False
+    
+    def _start_ollama(self):
+        """Start Ollama server in background"""
+        try:
+            subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            logger.info("Started Ollama serve")
+        except Exception as e:
+            logger.error(f"Failed to start Ollama: {e}")
     
     async def _generate(self, prompt: str, system_prompt: str = None) -> str:
         """Generate response from Ollama"""
