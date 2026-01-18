@@ -25,7 +25,7 @@ class LLMProcessor:
         if groq_key:
             self.groq_client = Groq(api_key=groq_key)
 
-    async def _call_gemini(self, prompt: str, model: str = 'gemini-2.0-flash') -> dict:
+    async def _call_gemini(self, prompt: str, model: str = 'gemini-2.5-flash') -> dict:
         response = await asyncio.to_thread(
             self.gemini_client.models.generate_content,
             model=model,
@@ -73,7 +73,7 @@ class LLMProcessor:
         )
         return completion.choices[0].message.content
 
-    async def _call_gemini_text(self, prompt: str, model: str = 'gemini-2.0-flash') -> str:
+    async def _call_gemini_text(self, prompt: str, model: str = 'gemini-2.5-flash') -> str:
         """Call Gemini and return plain text."""
         response = await asyncio.to_thread(
             self.gemini_client.models.generate_content,

@@ -251,7 +251,7 @@ class AgentRequest(BaseModel):
     input: str
     use_ollama: bool = False
     llm_provider: str = "gemini"  # "gemini", "groq", or "ollama"
-    model: str = "gemini-2.0-flash"
+    model: str = "gemini-2.5-flash"
 
 @app.post("/api/v1/agent", tags=["AI Agent"])
 @limiter.limit("20/minute")
@@ -359,6 +359,8 @@ class ResearchChatRequest(BaseModel):
     query: str
     deep: bool = False
     use_ollama: bool = False
+    llm_provider: str = "gemini"  # "gemini", "groq", or "ollama"
+    model: str = "gemini-2.5-flash"
 
 @app.post(
     "/api/v1/research",
@@ -402,16 +404,23 @@ async def research_query(
     - **query**: Your research question (natural language)
     - **deep**: Enable deep research mode (scrapes more sources, slower but comprehensive)
     - **use_ollama**: Use local Ollama LLM instead of cloud Gemini/Groq
+    - **llm_provider**: The LLM provider to use ("gemini", "groq", or "ollama")
+    - **model**: The specific model to use
     
     **Rate Limit:** 10 requests per minute
     """
     try:
         # Choose LLM based on parameter
-        chat_service = research_chat_ollama if body.use_ollama else research_chat
+        use_local = body.use_ollama or body.llm_provider == "ollama"
+        chat_service = research_chat_ollama if use_local else research_chat
+        
+        logger.info(f"Research using LLM provider: {body.llm_provider}, model: {body.model}, use_ollama: {use_local}")
+        
         result = await chat_service.chat(body.query, deep_research=body.deep)
         return {
             "status": "success",
-            "llm_used": "ollama" if body.use_ollama else "gemini/groq",
+            "llm_used": body.llm_provider if body.llm_provider else ("ollama" if use_local else "gemini/groq"),
+            "model_used": body.model,
             **result
         }
     except Exception as e:
@@ -437,6 +446,99 @@ async def clear_research_history():
     """Clear research chat history."""
     research_chat.clear_history()
     return {"status": "success", "message": "History cleared"}
+
+
+# ============================================================================
+# DIRECT SCRAPE ENDPOINT
+# ============================================================================
+
+class ScrapeRequest(BaseModel):
+    url: str
+    instruction: str = None
+
+@app.post("/api/v1/scrape", tags=["Scrape"])
+@limiter.limit("20/minute")
+async def direct_scrape(
+    request: Request,
+    body: ScrapeRequest
+):
+    """
+    **Direct Web Scraping**
+    
+    Extract content from any URL using intelligent strategy selection.
+    If 'instruction' is provided, uses AI to extract specific data.
+    
+    **Parameters:**
+    - **url**: Target URL to scrape
+    - **instruction**: Optional extraction instructions (e.g., "extract all prices")
+    
+    **Response:**
+    ```json
+    {
+        "status": "success",
+        "url": "https://...",
+        "content": "Extracted content...",
+        "extracted_data": { ... },
+        "strategy_used": "lightweight|stealth|ultra_stealth",
+        "execution_time": 2.3
+    }
+    ```
+    """
+    import time
+    start_time = time.time()
+    
+    try:
+        # 1. Scrape the content
+        logger.info(f"Direct scraping: {body.url}")
+        result = await scraper.scrape(body.url)
+        
+        # 2. Check if scraping failed
+        if result.get("status") == "error" and not result.get("content"):
+             return {
+                "status": "error",
+                "url": body.url,
+                "message": result.get("error", "Failed to scrape URL"),
+                "execution_time": round(time.time() - start_time, 2)
+            }
+            
+        content = result.get("content", "")
+        strategy = result.get("strategy", "auto")
+        
+        # 3. Process with AI if instruction is provided
+        extracted_data = None
+        if body.instruction and content and len(content) > 100:
+            try:
+                logger.info(f"Processing content with instruction: {body.instruction}")
+                # Use synthesizer to extract structured data
+                extraction_result = await processor.synthesize(
+                    query=body.instruction,
+                    all_contents=[content]
+                )
+                extracted_data = extraction_result
+            except Exception as e:
+                logger.error(f"AI Extraction failed: {e}")
+                extracted_data = {"error": str(e)}
+
+        execution_time = time.time() - start_time
+        
+        return {
+            "status": "success",
+            "url": body.url,
+            "content": content,
+            "content_length": len(content),
+            "extracted_data": extracted_data,
+            "strategy_used": strategy,
+            "execution_time": round(execution_time, 2)
+        }
+
+    except Exception as e:
+        logger.error(f"Scrape error: {e}")
+        return {
+            "status": "error",
+            "url": body.url,
+            "message": str(e)
+        }
+
 
 @app.get(
     "/api/v1/scraper-stats",

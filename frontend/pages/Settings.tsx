@@ -73,8 +73,8 @@ const PROVIDERS: ProviderConfig[] = [
         bg: 'rgba(66, 133, 244, 0.1)',
         requiresApiKey: true,
         supportsModels: true,
-        defaultModel: 'gemini-2.0-flash',
-        models: ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+        defaultModel: 'gemini-2.5-flash',
+        models: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'],
     },
     {
         id: 'groq',
@@ -119,7 +119,7 @@ function loadSettings(): LLMSettings {
 
     return {
         activeProvider: 'gemini',
-        gemini: { apiKey: '', model: 'gemini-2.0-flash', enabled: true, status: 'untested' },
+        gemini: { apiKey: '', model: 'gemini-2.5-flash', enabled: true, status: 'untested' },
         groq: { apiKey: '', model: 'llama-3.3-70b-versatile', enabled: false, status: 'untested' },
         ollama: { baseUrl: 'http://localhost:11434', model: 'llama3.2', enabled: false, status: 'untested' },
     };
