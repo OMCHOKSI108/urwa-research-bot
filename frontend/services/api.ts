@@ -108,20 +108,63 @@ async function apiCall<T>(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// LLM SETTINGS HELPER - Read from localStorage
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LLM_STORAGE_KEY = 'urwa_llm_settings';
+
+interface LLMSettingsData {
+  activeProvider: 'gemini' | 'groq' | 'ollama';
+  gemini: { apiKey: string; model: string; enabled: boolean };
+  groq: { apiKey: string; model: string; enabled: boolean };
+  ollama: { baseUrl: string; model: string; enabled: boolean };
+}
+
+function getLLMSettings(): { provider: string; useOllama: boolean; model: string } {
+  try {
+    const saved = localStorage.getItem(LLM_STORAGE_KEY);
+    if (saved) {
+      const settings: LLMSettingsData = JSON.parse(saved);
+      return {
+        provider: settings.activeProvider,
+        useOllama: settings.activeProvider === 'ollama',
+        model: settings[settings.activeProvider]?.model || 'gemini-2.5-flash',
+      };
+    }
+  } catch (e) {
+    console.error('Failed to read LLM settings:', e);
+  }
+  // Default to cloud (gemini)
+  return { provider: 'gemini', useOllama: false, model: 'gemini-2.5-flash' };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // UNIFIED AI AGENT APIs
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Send a message to the Unified AI Agent
  * This is the main endpoint that handles all AI requests
+ * Automatically reads LLM provider from Settings
  */
 export async function sendAgentMessage(
   input: string,
-  useOllama: boolean = false
+  forceOllama?: boolean
 ): Promise<ApiResponse<AgentResponse>> {
+  // Read settings from localStorage
+  const llmSettings = getLLMSettings();
+  const useOllama = forceOllama !== undefined ? forceOllama : llmSettings.useOllama;
+
+  console.log(`[API] Using LLM: ${llmSettings.provider}, useOllama: ${useOllama}, model: ${llmSettings.model}`);
+
   return apiCall<AgentResponse>('/agent', {
     method: 'POST',
-    body: JSON.stringify({ input, use_ollama: useOllama }),
+    body: JSON.stringify({
+      input,
+      use_ollama: useOllama,
+      llm_provider: llmSettings.provider,
+      model: llmSettings.model,
+    }),
   });
 }
 
@@ -145,15 +188,28 @@ export async function clearAgentHistory(): Promise<ApiResponse<{ message: string
 
 /**
  * Perform deep research on a topic
+ * Automatically reads LLM provider from Settings
  */
 export async function performResearch(
   query: string,
   deep: boolean = false,
-  useOllama: boolean = false
+  forceOllama?: boolean
 ): Promise<ApiResponse<ResearchResult>> {
+  // Read settings from localStorage
+  const llmSettings = getLLMSettings();
+  const useOllama = forceOllama !== undefined ? forceOllama : llmSettings.useOllama;
+
+  console.log(`[API Research] Using LLM: ${llmSettings.provider}, useOllama: ${useOllama}`);
+
   return apiCall<ResearchResult>('/research', {
     method: 'POST',
-    body: JSON.stringify({ query, deep, use_ollama: useOllama }),
+    body: JSON.stringify({
+      query,
+      deep,
+      use_ollama: useOllama,
+      llm_provider: llmSettings.provider,
+      model: llmSettings.model,
+    }),
   });
 }
 

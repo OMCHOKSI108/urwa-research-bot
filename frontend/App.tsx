@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import Dashboard from './pages/Dashboard';
 import AgentConsole from './pages/AgentConsole';
+import History from './pages/History';
 import Research from './pages/Research';
 import Scraper from './pages/Scraper';
 import SystemHealth from './pages/SystemHealth';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
               <Routes>
                 <Route path={AppRoute.DASHBOARD} element={<Dashboard />} />
                 <Route path={AppRoute.AGENT} element={<AgentConsole />} />
+                <Route path={AppRoute.HISTORY} element={<History />} />
                 <Route path={AppRoute.RESEARCH} element={<Research />} />
                 <Route path={AppRoute.SCRAPER} element={<Scraper />} />
                 <Route path={AppRoute.MONITOR} element={<SystemHealth />} />
@@ -36,7 +38,7 @@ const App: React.FC = () => {
           </main>
         </div>
       </Router>
-    </ToastProvider>
+    </ToastProvider >
   );
 };
 

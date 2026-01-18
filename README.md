@@ -76,6 +76,43 @@ urwa profile [https://amazon.com](https://amazon.com)
 
 ---
 
+# Screenshots & Demo
+
+## Terminal Interface
+
+<div align="center">
+  <img src="docs/terminal.png" alt="URWA Brain Terminal Interface" width="800"/>
+  <p><em>Professional CLI with Master AI mode, research capabilities, and real-time status</em></p>
+</div>
+
+## Frontend Dashboard
+
+<div align="center">
+  <img src="docs/frontend_ui_dashboard.png" alt="Frontend Dashboard" width="800"/>
+  <p><em>Modern web interface with system metrics, agent console, and monitoring</em></p>
+</div>
+
+## System Monitoring
+
+<div align="center">
+  <img src="docs/system_monitor.png" alt="System Health Monitor" width="800"/>
+  <p><em>Real-time system health, circuit breakers, and performance metrics</em></p>
+</div>
+
+## API Documentation
+
+<div align="center">
+  <img src="docs/fastapi.png" alt="FastAPI Swagger Documentation" width="800"/>
+  <p><em>Interactive API documentation with Swagger UI</em></p>
+</div>
+
+<div align="center">
+  <img src="docs/redoc.png" alt="ReDoc API Documentation" width="800"/>
+  <p><em>Beautiful API documentation with ReDoc</em></p>
+</div>
+
+---
+
 # Architecture (High Level)
 
 ```mermaid

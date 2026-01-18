@@ -26,7 +26,8 @@ import {
   Shield,
   BarChart3,
   Lightbulb,
-  HelpCircle
+  HelpCircle,
+  Square
 } from 'lucide-react';
 import { sendAgentMessage, clearAgentHistory } from '../services/api';
 import { ChatMessage, AgentResponse } from '../types';
@@ -36,11 +37,13 @@ import { useToast } from '../components/Toast';
    GREETING DETECTION - Handle casual conversation locally
    ═══════════════════════════════════════════════════════════════════════════ */
 const GREETING_PATTERNS = [
-  /^(hi|hey|hello|hola|howdy|sup|yo)[\s!?.]*$/i,
+  /^(hi+|hey+|hello+|hola|howdy|sup|yo)[\s!?.]*$/i,
   /^(good\s*(morning|afternoon|evening|night))[\s!?.]*$/i,
   /^(what'?s?\s*up|how\s*(are\s*you|r\s*u|is\s*it\s*going))[\s!?.]*$/i,
   /^(greetings|salutations)[\s!?.]*$/i,
-  /^(hii+|heyy+|helloo+)[\s!?.]*$/i,
+  /^h+e+l+o+[\s!?.]*$/i, // Catches "hellooo", "heeellooo", etc.
+  /^h+i+[\s!?.]*$/i, // Catches "hiiii", "hiii", etc.
+  /^h+e+y+[\s!?.]*$/i, // Catches "heyyy", "heyyyy", etc.
 ];
 
 const GREETING_RESPONSES = [
@@ -54,36 +57,65 @@ const HELP_PATTERNS = [
   /^(help|what\s*can\s*you\s*do|commands|features)[\s!?.]*$/i,
   /^(how\s*do\s*(i|you)\s*use\s*(this|you))[\s!?.]*$/i,
   /^(what\s*are\s*you|who\s*are\s*you)[\s!?.]*$/i,
+  /^what\s*features?\s*(do\s*)?(you\s*)?(have|got)[\s!?.]*$/i, // "what features you have"
+  /^(show|tell|list)\s*(me\s*)?(your\s*)?(features|capabilities|abilities)[\s!?.]*$/i,
 ];
 
-const HELP_RESPONSE = `# URWA Brain Capabilities
+const HELP_RESPONSE = `# URWA Brain - Your Intelligent Web Assistant
 
-I'm an intelligent web research and scraping assistant. Here's what I can do:
+Welcome! I'm a powerful AI-powered platform for web intelligence. Here's everything I can do:
 
-## Research Mode
-Ask me to research any topic:
+---
+
+## 🔍 **Research & Analysis**
+Deep dive into any topic with AI-powered synthesis:
 - *"Research AI trends in 2026"*
 - *"What are the latest developments in quantum computing?"*
-- *"Summarize news about climate change"*
+- *"Find information about climate change solutions"*
 
-## Web Scraping
-I can extract data from websites:
+I search multiple sources, analyze content, and synthesize comprehensive reports.
+
+---
+
+## 🌐 **Web Scraping**
+Extract data from any website using intelligent strategies:
 - *"Scrape news.ycombinator.com"*
 - *"Extract articles from techcrunch.com"*
 - *"Get product data from amazon.com/product-url"*
 
-## Site Analysis
-Check website protection levels:
+I automatically detect protection levels and choose the best scraping strategy (Lightweight, Stealth, or Ultra Stealth).
+
+---
+
+## 🛡️ **Site Analysis**
+Analyze website protection and scraping feasibility:
 - *"Analyze linkedin.com security"*
 - *"What protection does twitter.com use?"*
 - *"Can I scrape facebook.com?"*
 
-## Fact Checking
-Verify claims and information:
-- *"Fact check: Is X true?"*
-- *"Verify this claim about Y"*
+Get detailed reports on anti-bot measures, rate limits, and recommended approaches.
 
-Just type naturally and I'll understand your intent!`;
+---
+
+## ✅ **Fact Checking**
+Verify claims and cross-reference information:
+- *"Fact check: Is this claim true?"*
+- *"Verify information about X"*
+
+I cross-reference multiple sources to provide confidence scores.
+
+---
+
+## 💡 **Quick Tips**
+- Just type naturally - I understand intent!
+- Use the quick action buttons below for common tasks
+- Check **History** to see past conversations
+- Visit **Settings** to configure your LLM preferences
+
+---
+
+*Ready to get started? Just type your request below!*`;
+
 
 function isGreeting(text: string): boolean {
   const trimmed = text.trim();
@@ -100,232 +132,127 @@ function getGreetingResponse(): string {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ACTIVITY STEP COMPONENT - Shows individual action with animation
-   ═══════════════════════════════════════════════════════════════════════════ */
-interface ActivityStep {
-  id: string;
-  label: string;
-  status: 'pending' | 'active' | 'complete' | 'error';
-  icon: React.ElementType;
-  detail?: string;
-}
-
-const ActivityStepItem: React.FC<{ step: ActivityStep; index: number }> = ({ step, index }) => {
-  const statusStyles = {
-    pending: { color: 'var(--text-muted)', bg: 'var(--bg-muted)' },
-    active: { color: 'var(--primary)', bg: 'var(--primary-bg)' },
-    complete: { color: 'var(--success)', bg: 'var(--success-bg)' },
-    error: { color: 'var(--error)', bg: 'var(--error-bg)' },
-  };
-
-  const styles = statusStyles[step.status];
-  const Icon = step.icon;
-
-  return (
-    <div
-      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${step.status === 'active' ? 'animate-pulse' : ''
-        }`}
-      style={{
-        background: step.status === 'active' ? styles.bg : 'transparent',
-        animationDelay: `${index * 100}ms`,
-      }}
-    >
-      <div
-        className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
-        style={{ background: styles.bg }}
-      >
-        {step.status === 'active' ? (
-          <Loader2 className="w-4 h-4 animate-spin" style={{ color: styles.color }} />
-        ) : step.status === 'complete' ? (
-          <CheckCircle2 className="w-4 h-4" style={{ color: styles.color }} />
-        ) : (
-          <Icon className="w-4 h-4" style={{ color: styles.color }} />
-        )}
-      </div>
-
-      <div className="flex-1">
-        <p
-          className="text-sm font-medium"
-          style={{ color: step.status === 'pending' ? 'var(--text-muted)' : 'var(--text-primary)' }}
-        >
-          {step.label}
-        </p>
-        {step.detail && step.status === 'active' && (
-          <p
-            className="text-xs mt-0.5 animate-fade-in"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {step.detail}
-          </p>
-        )}
-      </div>
-
-      {step.status === 'complete' && (
-        <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />
-      )}
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   LIVE ACTIVITY FEED - Shows real-time agent actions
+   COMPACT LIVE ACTIVITY - Perplexity-style URL ticker
    ═══════════════════════════════════════════════════════════════════════════ */
 interface LiveActivityFeedProps {
   isActive: boolean;
   query: string;
 }
 
+const SEARCH_SOURCES = [
+  'google.com/search',
+  'duckduckgo.com',
+  'wikipedia.org',
+  'github.com',
+  'reddit.com/r/',
+  'stackoverflow.com',
+  'news.ycombinator.com',
+  'arxiv.org',
+  'medium.com',
+  'techcrunch.com',
+];
+
 const LiveActivityFeed: React.FC<LiveActivityFeedProps> = ({ isActive, query }) => {
-  const [steps, setSteps] = useState<ActivityStep[]>([]);
   const [currentUrl, setCurrentUrl] = useState<string>('');
+  const [phase, setPhase] = useState<string>('Analyzing');
+  const [urlHistory, setUrlHistory] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isActive) {
-      setSteps([]);
       setCurrentUrl('');
+      setPhase('Analyzing');
+      setUrlHistory([]);
       return;
     }
 
-    // Simulate activity steps based on query
-    const isResearch = /research|find|search|what is|explain/i.test(query);
-    const isScrape = /scrape|extract|get data|crawl/i.test(query);
-    const isAnalyze = /analyze|check|security|protection/i.test(query);
+    // Phase progression
+    const phases = ['Analyzing query', 'Searching sources', 'Reading pages', 'Extracting data', 'Synthesizing'];
+    let phaseIdx = 0;
+    const phaseInterval = setInterval(() => {
+      phaseIdx = Math.min(phaseIdx + 1, phases.length - 1);
+      setPhase(phases[phaseIdx]);
+    }, 1500);
 
-    const baseSteps: ActivityStep[] = [
-      { id: '1', label: 'Understanding your request', status: 'pending', icon: Brain },
-      { id: '2', label: 'Planning execution strategy', status: 'pending', icon: Zap },
-    ];
+    // Fast URL ticker - changes every 400ms for speed effect
+    let urlIdx = 0;
+    const urlInterval = setInterval(() => {
+      const newUrl = SEARCH_SOURCES[urlIdx % SEARCH_SOURCES.length];
+      setCurrentUrl(newUrl);
+      setUrlHistory(prev => [...prev.slice(-2), newUrl]);
+      urlIdx++;
+    }, 400);
 
-    if (isResearch) {
-      baseSteps.push(
-        { id: '3', label: 'Searching the web', status: 'pending', icon: Search, detail: 'Querying multiple sources...' },
-        { id: '4', label: 'Analyzing sources', status: 'pending', icon: Globe, detail: '' },
-        { id: '5', label: 'Synthesizing information', status: 'pending', icon: Sparkles },
-      );
-    } else if (isScrape) {
-      baseSteps.push(
-        { id: '3', label: 'Analyzing target site', status: 'pending', icon: Globe, detail: '' },
-        { id: '4', label: 'Selecting scraping strategy', status: 'pending', icon: Zap },
-        { id: '5', label: 'Extracting data', status: 'pending', icon: Database },
-      );
-    } else if (isAnalyze) {
-      baseSteps.push(
-        { id: '3', label: 'Probing target URL', status: 'pending', icon: Wifi },
-        { id: '4', label: 'Detecting protections', status: 'pending', icon: Activity },
-        { id: '5', label: 'Generating report', status: 'pending', icon: FileText },
-      );
-    } else {
-      baseSteps.push(
-        { id: '3', label: 'Processing with AI', status: 'pending', icon: Brain },
-        { id: '4', label: 'Generating response', status: 'pending', icon: Sparkles },
-      );
-    }
-
-    baseSteps.push({ id: 'final', label: 'Finalizing response', status: 'pending', icon: CheckCircle2 });
-
-    setSteps(baseSteps);
-
-    // Animate through steps
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep < baseSteps.length) {
-        setSteps(prev => prev.map((step, idx) => ({
-          ...step,
-          status: idx < currentStep ? 'complete' : idx === currentStep ? 'active' : 'pending',
-          detail: idx === currentStep && step.detail !== undefined ? getStepDetail(step, query) : step.detail,
-        })));
-
-        // Simulate discovered URLs
-        if (currentStep === 2 && (isResearch || isScrape)) {
-          const urls = ['google.com', 'wikipedia.org', 'github.com', 'stackexchange.com'];
-          setCurrentUrl(urls[Math.floor(Math.random() * urls.length)]);
-        }
-
-        currentStep++;
-      }
-    }, 800);
-
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(phaseInterval);
+      clearInterval(urlInterval);
+    };
   }, [isActive, query]);
 
-  if (!isActive || steps.length === 0) return null;
+  if (!isActive) return null;
 
   return (
     <div
-      className="saas-card p-4 animate-slide-up mb-4 overflow-hidden"
-      style={{ background: 'var(--bg-surface)' }}
+      className="mb-4 rounded-xl overflow-hidden animate-fade-up"
+      style={{
+        background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-muted) 100%)',
+        border: '1px solid var(--border-light)',
+      }}
     >
-      <div className="flex items-center gap-2 mb-4">
-        <div
-          className="p-1.5 rounded-lg"
-          style={{ background: 'var(--primary-bg)' }}
-        >
-          <Activity className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+      {/* Compact Header */}
+      <div
+        className="flex items-center gap-2 px-3 py-2"
+        style={{ borderBottom: '1px solid var(--border-light)' }}
+      >
+        <div className="relative">
+          <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--primary)' }} />
         </div>
-        <h4 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-          Live Activity
-        </h4>
-        <div
-          className="ml-auto flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium"
-          style={{ background: 'var(--success-bg)', color: 'var(--success)' }}
-        >
-          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
-          PROCESSING
-        </div>
-      </div>
-
-      {/* Current URL being accessed */}
-      {currentUrl && (
-        <div
-          className="mb-3 px-3 py-2 rounded-lg flex items-center gap-2 animate-fade-in"
-          style={{ background: 'var(--bg-muted)' }}
-        >
-          <Globe className="w-4 h-4" style={{ color: 'var(--primary)' }} />
-          <span className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-            Accessing: <span style={{ color: 'var(--primary)' }}>{currentUrl}</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+          {phase}
+        </span>
+        <div className="ml-auto flex items-center gap-1">
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ background: 'var(--success)' }}
+          />
+          <span className="text-xs font-medium" style={{ color: 'var(--success)' }}>
+            Live
           </span>
         </div>
-      )}
-
-      {/* Activity Steps */}
-      <div className="space-y-1">
-        {steps.map((step, idx) => (
-          <ActivityStepItem key={step.id} step={step} index={idx} />
-        ))}
       </div>
 
-      {/* Progress Bar */}
-      <div className="mt-4">
-        <div
-          className="h-1 rounded-full overflow-hidden"
-          style={{ background: 'var(--bg-muted)' }}
-        >
+      {/* Fast URL Ticker */}
+      <div className="px-3 py-2 flex items-center gap-2 overflow-hidden">
+        <Globe className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+        <div className="flex-1 overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-500 ease-out"
-            style={{
-              width: `${(steps.filter(s => s.status === 'complete').length / steps.length) * 100}%`,
-              background: 'linear-gradient(90deg, var(--primary), var(--accent))',
-            }}
-          />
+            className="text-xs font-mono truncate transition-all duration-200"
+            style={{ color: 'var(--primary)' }}
+            key={currentUrl}
+          >
+            {currentUrl}
+          </div>
         </div>
+        <span
+          className="text-xs shrink-0 px-1.5 py-0.5 rounded"
+          style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}
+        >
+          {urlHistory.length} sources
+        </span>
+      </div>
+
+      {/* Animated Progress */}
+      <div className="h-0.5 relative overflow-hidden" style={{ background: 'var(--bg-muted)' }}>
+        <div
+          className="absolute inset-0 animate-gradient"
+          style={{
+            background: 'linear-gradient(90deg, var(--primary), var(--accent), var(--primary))',
+            backgroundSize: '200% 100%',
+          }}
+        />
       </div>
     </div>
   );
 };
-
-function getStepDetail(step: ActivityStep, query: string): string {
-  const urls = ['news.ycombinator.com', 'reddit.com', 'twitter.com', 'medium.com'];
-  const actions = [
-    'Fetching page content...',
-    'Parsing HTML structure...',
-    'Extracting relevant data...',
-    'Cross-referencing sources...',
-  ];
-
-  if (step.id === '3') return actions[0];
-  if (step.id === '4') return actions[1];
-  return '';
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPING INDICATOR
@@ -385,7 +312,7 @@ const SuggestionChip: React.FC<SuggestionChipProps> = ({ text, icon: Icon, onCli
 );
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   MESSAGE BUBBLE
+   MESSAGE BUBBLE - Modern ChatGPT-style design
    ═══════════════════════════════════════════════════════════════════════════ */
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -403,112 +330,152 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   };
 
   return (
-    <div className={`flex gap-3 animate-slide-up ${isUser ? 'flex-row-reverse' : ''}`}>
-      {/* Avatar */}
-      <div
-        className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
-        style={{
-          background: isUser ? 'var(--primary)' : isError ? 'var(--error-bg)' : 'var(--primary-bg)',
-        }}
-      >
-        {isUser ? (
-          <User className="w-5 h-5 text-white" />
-        ) : isError ? (
-          <AlertCircle className="w-5 h-5" style={{ color: 'var(--error)' }} />
-        ) : (
-          <Bot className="w-5 h-5" style={{ color: 'var(--primary)' }} />
-        )}
-      </div>
-
-      {/* Message Content */}
-      <div className={`flex-1 max-w-2xl ${isUser ? 'text-right' : ''}`}>
+    <div
+      className="group py-5 px-4 transition-colors"
+      style={{
+        background: isUser ? 'transparent' : 'var(--bg-muted)',
+      }}
+    >
+      <div className="max-w-3xl mx-auto flex gap-4">
+        {/* Avatar */}
         <div
-          className={`inline-block px-4 py-3 rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'
-            }`}
+          className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
           style={{
-            background: isUser ? 'var(--primary)' : isError ? 'var(--error-bg)' : 'var(--bg-muted)',
-            color: isUser ? 'white' : isError ? 'var(--error)' : 'var(--text-primary)',
-            textAlign: 'left',
+            background: isUser
+              ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'
+              : isError
+                ? 'var(--error-bg)'
+                : 'linear-gradient(135deg, var(--accent) 0%, #059669 100%)',
           }}
         >
+          {isUser ? (
+            <User className="w-4 h-4 text-white" />
+          ) : isError ? (
+            <AlertCircle className="w-4 h-4" style={{ color: 'var(--error)' }} />
+          ) : (
+            <Sparkles className="w-4 h-4 text-white" />
+          )}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 min-w-0">
+          {/* Role Label */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <span
+              className="text-sm font-semibold"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {isUser ? 'You' : 'URWA Brain'}
+            </span>
+            <span
+              className="text-xs"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+
           {/* Metadata Tags */}
           {!isUser && message.metadata && !isError && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-1.5 mb-2">
               {message.metadata.intent && (
-                <span className="badge badge-primary">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}
+                >
                   {message.metadata.intent}
                 </span>
               )}
               {message.metadata.action && (
-                <span className="badge badge-info">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
+                >
                   {message.metadata.action}
                 </span>
               )}
               {message.metadata.confidence && (
-                <span className="badge badge-success">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'var(--success-bg)', color: 'var(--success)' }}
+                >
                   {(message.metadata.confidence * 100).toFixed(0)}% confidence
                 </span>
               )}
               {message.metadata.executionTime && (
-                <span className="badge badge-warning">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}
+                >
                   {message.metadata.executionTime.toFixed(2)}s
                 </span>
               )}
             </div>
           )}
 
-          {/* Content */}
-          <div className="prose prose-sm max-w-none">
+          {/* Message Content */}
+          <div
+            className="prose prose-sm max-w-none"
+            style={{
+              color: isError ? 'var(--error)' : 'var(--text-primary)',
+            }}
+          >
             <ReactMarkdown>{message.content}</ReactMarkdown>
           </div>
 
           {/* Sources */}
           {!isUser && message.metadata?.sources && message.metadata.sources.length > 0 && (
             <div
-              className="mt-3 pt-3"
-              style={{ borderTop: '1px solid var(--border-light)' }}
+              className="mt-4 p-3 rounded-lg"
+              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-light)' }}
             >
               <p
-                className="text-xs font-semibold uppercase mb-2"
+                className="text-xs font-semibold uppercase mb-2 flex items-center gap-1.5"
                 style={{ color: 'var(--text-muted)' }}
               >
+                <ExternalLink className="w-3 h-3" />
                 Sources
               </p>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {message.metadata.sources.map((source, idx) => (
                   <a
                     key={idx}
                     href={source.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 text-sm hover:underline"
+                    className="flex items-center gap-2 text-sm hover:underline transition-colors"
                     style={{ color: 'var(--primary)' }}
                   >
-                    <ExternalLink className="w-3 h-3" />
-                    {source.title}
+                    <span
+                      className="w-5 h-5 rounded flex items-center justify-center text-xs font-medium"
+                      style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className="truncate">{source.title}</span>
                   </a>
                 ))}
               </div>
             </div>
           )}
-        </div>
 
-        {/* Actions */}
-        {!isUser && !isError && (
-          <div className="mt-2 flex gap-2">
-            <button
-              onClick={handleCopy}
-              className="p-1.5 rounded-md transition-all hover:bg-gray-100"
-              title="Copy response"
-            >
-              {copied ? (
-                <Check className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} />
-              ) : (
-                <Copy className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-              )}
-            </button>
-          </div>
-        )}
+          {/* Actions - Visible on hover */}
+          {!isUser && !isError && (
+            <div className="mt-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={handleCopy}
+                className="p-1.5 rounded-md transition-all hover:bg-white/50"
+                title="Copy response"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4" style={{ color: 'var(--success)' }} />
+                ) : (
+                  <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -797,60 +764,135 @@ const AgentConsole: React.FC = () => {
         )}
       </div>
 
-      {/* Input Area */}
+      {/* Enhanced Premium Input Area */}
       <div
-        className="p-4"
+        className="p-5"
         style={{
-          background: 'var(--bg-surface)',
+          background: 'linear-gradient(to top, var(--bg-surface) 0%, var(--bg-base) 100%)',
           borderTop: '1px solid var(--border-light)',
         }}
       >
-        <div className="max-w-3xl mx-auto">
-          <div
-            className="relative rounded-xl overflow-hidden"
-            style={{
-              background: 'var(--bg-muted)',
-              border: '1px solid var(--border-light)',
-            }}
-          >
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Say hello or ask anything... (Press Enter to send)"
-              className="w-full px-4 py-3.5 pr-14 resize-none focus:outline-none"
-              style={{
-                background: 'transparent',
-                color: 'var(--text-primary)',
-                minHeight: '52px',
-                maxHeight: '120px',
-              }}
-              rows={1}
-            />
-
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg transition-all btn-primary"
-              style={{
-                opacity: input.trim() && !isLoading ? 1 : 0.5,
-              }}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </button>
+        <div className="max-w-3xl mx-auto space-y-3">
+          {/* Quick Action Chips */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {[
+              { icon: Search, label: 'Research a topic', query: 'Research ' },
+              { icon: Globe, label: 'Scrape website', query: 'Scrape ' },
+              { icon: Shield, label: 'Analyze site', query: 'Analyze ' },
+            ].map((action) => (
+              <button
+                key={action.label}
+                onClick={() => {
+                  setInput(action.query);
+                  inputRef.current?.focus();
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105"
+                style={{
+                  background: 'var(--bg-muted)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-light)',
+                }}
+              >
+                <action.icon className="w-3.5 h-3.5" />
+                {action.label}
+              </button>
+            ))}
           </div>
 
+          {/* Premium Input Container */}
+          <div
+            className="relative rounded-2xl overflow-hidden shadow-lg"
+            style={{
+              background: 'var(--bg-surface)',
+              border: '2px solid transparent',
+              backgroundClip: 'padding-box',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--border-light)',
+            }}
+          >
+            {/* Gradient Border Effect */}
+            <div
+              className="absolute inset-0 rounded-2xl -z-10"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
+                margin: '-2px',
+                opacity: 0.15,
+              }}
+            />
+
+            <div className="flex items-end gap-2 p-2">
+              {/* Avatar Icon */}
+              <div
+                className="p-2.5 rounded-xl shrink-0 mb-0.5"
+                style={{ background: 'var(--primary-bg)' }}
+              >
+                <Brain className="w-5 h-5" style={{ color: 'var(--primary)' }} />
+              </div>
+
+              {/* Text Input */}
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything... Research topics, scrape websites, analyze URLs"
+                className="flex-1 px-3 py-3 resize-none focus:outline-none text-sm"
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
+                  minHeight: '48px',
+                  maxHeight: '150px',
+                }}
+                rows={1}
+              />
+
+              {/* Stop Button - visible during loading */}
+              {isLoading && (
+                <button
+                  onClick={() => {
+                    setIsLoading(false);
+                    setCurrentQuery('');
+                    toast.info('Stopped', 'Request cancelled');
+                  }}
+                  className="p-3 rounded-xl transition-all shrink-0 mb-0.5"
+                  style={{
+                    background: 'var(--error-bg)',
+                    color: 'var(--error)',
+                  }}
+                  title="Stop generation"
+                >
+                  <Square className="w-5 h-5" fill="currentColor" />
+                </button>
+              )}
+
+              {/* Send Button */}
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="p-3 rounded-xl transition-all shrink-0 mb-0.5"
+                style={{
+                  background: input.trim() && !isLoading
+                    ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'
+                    : 'var(--bg-muted)',
+                  color: input.trim() && !isLoading ? 'white' : 'var(--text-muted)',
+                  boxShadow: input.trim() && !isLoading ? '0 2px 8px rgba(124, 58, 237, 0.3)' : 'none',
+                }}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Helpful Hint */}
           <p
-            className="text-center mt-3 text-xs flex items-center justify-center gap-1.5"
+            className="text-center text-xs flex items-center justify-center gap-1.5"
             style={{ color: 'var(--text-muted)' }}
           >
             <Lightbulb className="w-3.5 h-3.5" />
-            Try saying "hi" or "help" to see what I can do!
+            <span>Press <kbd className="px-1.5 py-0.5 rounded text-xs font-mono" style={{ background: 'var(--bg-muted)' }}>Enter</kbd> to send • <kbd className="px-1.5 py-0.5 rounded text-xs font-mono" style={{ background: 'var(--bg-muted)' }}>Shift+Enter</kbd> for new line</span>
           </p>
         </div>
       </div>

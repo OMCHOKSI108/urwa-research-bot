@@ -10,6 +10,7 @@
 export enum AppRoute {
   DASHBOARD = '/',
   AGENT = '/agent',
+  HISTORY = '/history',
   RESEARCH = '/research',
   SCRAPER = '/scraper',
   MONITOR = '/monitor',

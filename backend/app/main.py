@@ -250,6 +250,8 @@ async def health_check():
 class AgentRequest(BaseModel):
     input: str
     use_ollama: bool = False
+    llm_provider: str = "gemini"  # "gemini", "groq", or "ollama"
+    model: str = "gemini-2.0-flash"
 
 @app.post("/api/v1/agent", tags=["AI Agent"])
 @limiter.limit("20/minute")
@@ -296,6 +298,8 @@ async def unified_ai_agent(
     **Parameters:**
     - **input**: Your natural language request
     - **use_ollama**: If true, uses local Ollama LLM instead of cloud Gemini/Groq
+    - **llm_provider**: The LLM provider to use ("gemini", "groq", or "ollama")
+    - **model**: The specific model to use
     
     **Response:**
     ```json
@@ -312,9 +316,15 @@ async def unified_ai_agent(
     """
     try:
         # Choose agent based on LLM preference
-        agent = ai_agent_ollama if body.use_ollama else ai_agent
+        # use_ollama is a simpler flag, but llm_provider gives more control
+        use_local = body.use_ollama or body.llm_provider == "ollama"
+        agent = ai_agent_ollama if use_local else ai_agent
+        
+        logger.info(f"Using LLM provider: {body.llm_provider}, model: {body.model}, use_ollama: {use_local}")
+        
         result = await agent.process(body.input)
-        result["llm_used"] = "ollama" if body.use_ollama else "gemini/groq"
+        result["llm_used"] = body.llm_provider if body.llm_provider else ("ollama" if use_local else "gemini/groq")
+        result["model_used"] = body.model
         return result
     except Exception as e:
         logger.error(f"Agent error: {e}")

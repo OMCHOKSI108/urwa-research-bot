@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   Zap,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  History
 } from 'lucide-react';
 import { AppRoute } from '../types';
 
@@ -31,6 +32,12 @@ const Sidebar: React.FC = () => {
       path: AppRoute.AGENT,
       description: 'Unified intelligence',
       badge: 'AI'
+    },
+    {
+      name: 'History',
+      icon: History,
+      path: AppRoute.HISTORY,
+      description: 'Past conversations'
     },
     {
       name: 'Research',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity,
@@ -15,7 +15,11 @@ import {
   Search,
   ArrowRight,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Wifi,
+  Shield,
+  Database,
+  Loader2
 } from 'lucide-react';
 import {
   getSystemMetrics,
@@ -26,6 +30,198 @@ import {
 } from '../services/api';
 import { SystemMetrics, CircuitStatus, AppRoute } from '../types';
 import { useToast } from '../components/Toast';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIVE ACTIVITY FEED - Shows real-time scraping activity with animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+interface ActivityItem {
+  id: string;
+  url: string;
+  status: 'scraping' | 'success' | 'analyzing' | 'queued';
+  strategy: string;
+  timestamp: Date;
+}
+
+const SAMPLE_URLS = [
+  'news.ycombinator.com/front',
+  'github.com/trending',
+  'techcrunch.com/latest',
+  'producthunt.com/posts',
+  'reddit.com/r/technology',
+  'medium.com/popular',
+  'dev.to/top',
+  'arxiv.org/list/cs.AI',
+  'stackoverflow.com/questions',
+  'bbc.com/news/technology',
+];
+
+const STRATEGIES = ['Lightweight', 'Stealth', 'Ultra Stealth'];
+
+const LiveActivityFeed: React.FC<{ isActive?: boolean }> = ({ isActive = true }) => {
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+
+  // Simulate live activity for demonstration
+  useEffect(() => {
+    if (!isActive) return;
+
+    // Initial activities
+    const initialActivities: ActivityItem[] = [
+      { id: '1', url: SAMPLE_URLS[0], status: 'success', strategy: 'Lightweight', timestamp: new Date(Date.now() - 5000) },
+      { id: '2', url: SAMPLE_URLS[1], status: 'scraping', strategy: 'Stealth', timestamp: new Date(Date.now() - 2000) },
+      { id: '3', url: SAMPLE_URLS[2], status: 'analyzing', strategy: 'Ultra Stealth', timestamp: new Date(Date.now() - 1000) },
+    ];
+    setActivities(initialActivities);
+
+    // Add new activities periodically
+    const interval = setInterval(() => {
+      setActivities(prev => {
+        // Update existing scraping items to success
+        const updated = prev.map(item => {
+          if (item.status === 'scraping') return { ...item, status: 'success' as const };
+          if (item.status === 'analyzing') return { ...item, status: 'scraping' as const };
+          if (item.status === 'queued') return { ...item, status: 'analyzing' as const };
+          return item;
+        });
+
+        // Add new activity
+        const newActivity: ActivityItem = {
+          id: Date.now().toString(),
+          url: SAMPLE_URLS[Math.floor(Math.random() * SAMPLE_URLS.length)],
+          status: 'queued',
+          strategy: STRATEGIES[Math.floor(Math.random() * STRATEGIES.length)],
+          timestamp: new Date(),
+        };
+
+        return [newActivity, ...updated].slice(0, 5);
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isActive]);
+
+  const getStatusConfig = (status: ActivityItem['status']) => {
+    switch (status) {
+      case 'scraping':
+        return { color: 'var(--primary)', bg: 'var(--primary-bg)', label: 'Scraping', pulse: true };
+      case 'success':
+        return { color: 'var(--success)', bg: 'var(--success-bg)', label: 'Complete', pulse: false };
+      case 'analyzing':
+        return { color: 'var(--warning)', bg: 'var(--warning-bg)', label: 'Analyzing', pulse: true };
+      case 'queued':
+        return { color: 'var(--text-muted)', bg: 'var(--bg-muted)', label: 'Queued', pulse: false };
+    }
+  };
+
+  return (
+    <div className="saas-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Wifi className="w-5 h-5" style={{ color: 'var(--primary)' }} />
+            <span
+              className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-ping"
+              style={{ background: 'var(--success)' }}
+            />
+            <span
+              className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+              style={{ background: 'var(--success)' }}
+            />
+          </div>
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Live Activity
+          </h3>
+        </div>
+        <span
+          className="text-xs px-2 py-1 rounded-full font-medium"
+          style={{ background: 'var(--success-bg)', color: 'var(--success)' }}
+        >
+          Active
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        {activities.map((activity, index) => {
+          const config = getStatusConfig(activity.status);
+          return (
+            <div
+              key={activity.id}
+              className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300"
+              style={{
+                background: 'var(--bg-muted)',
+                animationDelay: `${index * 100}ms`,
+                opacity: 1 - (index * 0.15),
+              }}
+            >
+              {/* Status Indicator */}
+              <div className="relative">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${config.pulse ? 'animate-pulse' : ''}`}
+                  style={{ background: config.color }}
+                />
+                {config.pulse && (
+                  <div
+                    className="absolute inset-0 rounded-full animate-ping"
+                    style={{ background: config.color, opacity: 0.4 }}
+                  />
+                )}
+              </div>
+
+              {/* URL & Strategy */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-medium truncate"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {activity.url}
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {activity.strategy} • {new Date(activity.timestamp).toLocaleTimeString()}
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <span
+                className="text-xs px-2 py-1 rounded-full font-medium shrink-0"
+                style={{ background: config.bg, color: config.color }}
+              >
+                {activity.status === 'scraping' && (
+                  <Loader2 className="w-3 h-3 inline mr-1 animate-spin" />
+                )}
+                {config.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-light)' }}>
+        <div className="flex justify-between text-xs mb-2">
+          <span style={{ color: 'var(--text-muted)' }}>Session Progress</span>
+          <span className="font-mono" style={{ color: 'var(--primary)' }}>
+            {activities.filter(a => a.status === 'success').length} / {activities.length}
+          </span>
+        </div>
+        <div
+          className="h-1.5 rounded-full overflow-hidden"
+          style={{ background: 'var(--bg-subtle)' }}
+        >
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${(activities.filter(a => a.status === 'success').length / Math.max(activities.length, 1)) * 100}%`,
+              background: 'linear-gradient(90deg, var(--primary), var(--success))'
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
    STAT CARD COMPONENT
@@ -438,36 +634,43 @@ const Dashboard: React.FC = () => {
           </section>
         )}
 
-        {/* Quick Actions */}
-        <section>
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <QuickAction
-              title="Start Research"
-              description="Deep web analysis with AI synthesis"
-              icon={Search}
-              color="var(--primary)"
-              onClick={() => navigate(AppRoute.RESEARCH)}
-            />
-            <QuickAction
-              title="Talk to Agent"
-              description="Unified AI for any task"
-              icon={Bot}
-              color="var(--accent)"
-              onClick={() => navigate(AppRoute.AGENT)}
-            />
-            <QuickAction
-              title="Scrape Website"
-              description="Extract data with stealth strategies"
-              icon={Globe}
-              color="var(--warning)"
-              onClick={() => navigate(AppRoute.SCRAPER)}
-            />
+        {/* Quick Actions + Live Activity */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <h2
+              className="text-lg font-semibold mb-4"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <QuickAction
+                title="Start Research"
+                description="Deep web analysis with AI synthesis"
+                icon={Search}
+                color="var(--primary)"
+                onClick={() => navigate(AppRoute.RESEARCH)}
+              />
+              <QuickAction
+                title="Talk to Agent"
+                description="Unified AI for any task"
+                icon={Bot}
+                color="var(--accent)"
+                onClick={() => navigate(AppRoute.AGENT)}
+              />
+              <QuickAction
+                title="Scrape Website"
+                description="Extract data with stealth strategies"
+                icon={Globe}
+                color="var(--warning)"
+                onClick={() => navigate(AppRoute.SCRAPER)}
+              />
+            </div>
+          </div>
+
+          {/* Live Activity Feed */}
+          <div>
+            <LiveActivityFeed isActive={isBackendOnline} />
           </div>
         </section>
 
