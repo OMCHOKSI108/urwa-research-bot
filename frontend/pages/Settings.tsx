@@ -623,7 +623,7 @@ const Settings: React.FC = () => {
                                 Backend API
                             </p>
                             <p className="text-lg font-mono font-semibold mt-1" style={{ color: 'var(--text-primary)' }}>
-                                localhost:8000
+                                {import.meta.env.VITE_API_BASE ? 'Connected' : 'Local / Dev'}
                             </p>
                         </div>
                     </div>

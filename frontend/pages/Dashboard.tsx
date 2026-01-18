@@ -510,8 +510,8 @@ const Dashboard: React.FC = () => {
             className="text-sm mb-6"
             style={{ color: 'var(--text-muted)' }}
           >
-            Cannot connect to URWA Brain backend at localhost:8000.
-            Please ensure the server is running.
+            Cannot connect to URWA Brain backend.
+            Please ensure the server is running and accessible.
           </p>
 
           <div className="space-y-3">
@@ -521,7 +521,7 @@ const Dashboard: React.FC = () => {
             </button>
 
             <a
-              href="http://localhost:8000/docs"
+              href={`${(import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1').replace(/\/api\/v1\/?$/, '')}/docs`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-secondary w-full"

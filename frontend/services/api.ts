@@ -397,12 +397,17 @@ export async function clearScraperCache(): Promise<ApiResponse<{ message: string
  */
 export async function checkBackendHealth(): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:8000/health', {
+    // Derive root URL from API_BASE (removes /api/v1 if present)
+    const baseUrl = API_BASE.replace(/\/api\/v1\/?$/, '');
+    const healthUrl = `${baseUrl}/health`;
+
+    const response = await fetch(healthUrl, {
       method: 'GET',
       signal: AbortSignal.timeout(5000),
     });
     return response.ok;
-  } catch {
+  } catch (e) {
+    console.warn("Backend health check failed:", e);
     return false;
   }
 }

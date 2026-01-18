@@ -221,7 +221,7 @@ const Sidebar: React.FC = () => {
 
         {!isCollapsed && (
           <a
-            href="http://localhost:8000/docs"
+            href={`${(import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1').replace(/\/api\/v1\/?$/, '')}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all"
