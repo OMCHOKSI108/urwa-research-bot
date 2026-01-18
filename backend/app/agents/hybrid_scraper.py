@@ -35,15 +35,46 @@ class HybridScraper:
 
     # Sites that are known to require heavy scraping
     HEAVY_SITES = [
-        'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com',
-        'amazon.com', 'ebay.com', 'google.com', 'cloudflare.com',
-        'zillow.com', 'indeed.com', 'glassdoor.com', 'github.com'
+        # Social Media
+        'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com', 'x.com',
+        'tiktok.com', 'snapchat.com', 'pinterest.com', 'reddit.com',
+        # E-Commerce
+        'amazon.com', 'ebay.com', 'walmart.com', 'target.com', 'bestbuy.com',
+        'shopify.com', 'etsy.com', 'aliexpress.com', 'alibaba.com',
+        # Job Sites
+        'indeed.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com',
+        # Real Estate
+        'zillow.com', 'realtor.com', 'redfin.com', 'trulia.com',
+        # Finance
+        'bloomberg.com', 'reuters.com', 'wsj.com', 'ft.com',
+        # Tech/Dev
+        'github.com', 'gitlab.com', 'stackoverflow.com', 'medium.com',
+        # Travel
+        'booking.com', 'expedia.com', 'airbnb.com', 'tripadvisor.com',
+        # News
+        'cnn.com', 'bbc.com', 'nytimes.com', 'washingtonpost.com',
+        # Other Protected
+        'google.com', 'cloudflare.com', 'bing.com', 'duckduckgo.com',
     ]
 
-    # Sites that need ultra stealth
+    # Sites that need ultra stealth (aggressive bot detection)
     ULTRA_STEALTH_SITES = [
-        'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com',
-        'cloudflare.com', 'datadome.com', 'akamai.com', 'perimeterx.com', 'github.com'
+        # Social Media (very aggressive)
+        'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com', 'x.com',
+        'tiktok.com',
+        # E-Commerce (DataDome, PerimeterX)
+        'nike.com', 'footlocker.com', 'ticketmaster.com', 'stubhub.com',
+        # Security/CDN providers
+        'cloudflare.com', 'datadome.com', 'akamai.com', 'perimeterx.com',
+        'kasada.io', 'imperva.com', 'shape.com',
+        # Tech (fingerprinting)
+        'github.com', 'gitlab.com',
+        # Finance (high security)
+        'chase.com', 'bankofamerica.com', 'wellsfargo.com',
+        # Travel (bot detection)
+        'booking.com', 'airbnb.com', 'southwest.com', 'united.com',
+        # Job sites (PerimeterX)
+        'indeed.com', 'glassdoor.com', 'linkedin.com',
     ]
     
     # Strategy name mapping
