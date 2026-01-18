@@ -41,8 +41,7 @@ load_dotenv()
 # Windows Proactor Loop Fix
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-
-nest_asyncio.apply()
+    nest_asyncio.apply()
 
 # --- Rate Limiting ---
 limiter = Limiter(key_func=get_remote_address)

@@ -18,9 +18,17 @@
 
 **URWA Brain is an intelligent autonomous research and scraping engine that understands intent, adapts its strategy, and delivers structured intelligence — not raw HTML.**
 
-[Quick Start](#quick-start) • [Docs](docs/index.md) • [API](http://localhost:8000/docs) • [CLI](terminal/README.md)
+[Quick Start](#quick-start) • [Docs](docs/index.md) • [API](https://urwa-research-bot.onrender.com/docs) • [Frontend](https://urwa.netlify.app/) • [CLI](terminal/README.md)
 
 </div>
+
+---
+
+# Live Deployment
+
+🚀 **Frontend:** [https://urwa.netlify.app/](https://urwa.netlify.app/)  
+🔧 **Backend API:** [https://urwa-research-bot.onrender.com](https://urwa-research-bot.onrender.com)  
+📚 **API Docs:** [https://urwa-research-bot.onrender.com/docs](https://urwa-research-bot.onrender.com/docs)
 
 ---
 
@@ -197,7 +205,7 @@ URWA **automatically escalates** if a strategy fails.
 
 # API Overview
 
-Base URL → `http://localhost:8000`
+Base URL → `https://urwa-research-bot.onrender.com`
 
 ## Unified Agent
 
