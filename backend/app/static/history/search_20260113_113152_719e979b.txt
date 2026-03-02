@@ -17,7 +17,7 @@ COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT:
 SOURCES SCRAPED
 --------------------------------------------------------------------------------
 1. https://github.com/OMCHOKSI108
-2. https://github.com/pentagonKUKADIYA3303
+2. https://github.com/pentagonPENTAGON3303
 
 Total Sources: 2
 
