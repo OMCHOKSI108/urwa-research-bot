@@ -11,13 +11,13 @@ Status: success
 --------------------------------------------------------------------------------
 QUERY
 --------------------------------------------------------------------------------
-COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF SANSKRUTI is 90/100 
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF pentagon is 90/100 
 
 --------------------------------------------------------------------------------
 SOURCES SCRAPED
 --------------------------------------------------------------------------------
 1. https://github.com/OMCHOKSI108
-2. https://github.com/SANSKRUTIKUKADIYA3303
+2. https://github.com/pentagonKUKADIYA3303
 
 Total Sources: 2
 

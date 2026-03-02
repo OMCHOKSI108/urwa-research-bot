@@ -11,13 +11,13 @@ Status: success
 --------------------------------------------------------------------------------
 QUERY
 --------------------------------------------------------------------------------
-COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF SANSKRUTI is 90/100 
+COMPARE ABOVE TWO GITHUB PRPFILES AND GRADE THEM BY 100 , example OUTPUT FORMAT: SCORE OF OM IS 20/100 and SCORE OF pentagon is 90/100 
 
 --------------------------------------------------------------------------------
 SOURCES SCRAPED
 --------------------------------------------------------------------------------
 1. https://github.com/OMCHOKSI108
-2. https://github.com/SANSKRUTIKUKADIYA3303
+2. https://github.com/pentagonKUKADIYA3303
 
 Total Sources: 2
 
@@ -29,5 +29,5 @@ Unable to compare GitHub PR files as no entities or data points were found.
 --------------------------------------------------------------------------------
 DETAILED ANSWER
 --------------------------------------------------------------------------------
-The provided query does not contain any specific information about the contents of two hypothetical GitHub pull request (PR) files named 'OM' and 'SANSKRUTI'. Without access to these repositories, their content cannot be evaluated. To compare PRs effectively, one would need details such as code changes made in each file or comments indicating quality aspects like clarity, completeness, efficiency of the proposed solutions.
+The provided query does not contain any specific information about the contents of two hypothetical GitHub pull request (PR) files named 'OM' and 'pentagon'. Without access to these repositories, their content cannot be evaluated. To compare PRs effectively, one would need details such as code changes made in each file or comments indicating quality aspects like clarity, completeness, efficiency of the proposed solutions.
 
